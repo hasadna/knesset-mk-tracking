@@ -76,6 +76,12 @@ class JsonRepository:
     def _enriched_member(self, member: dict[str, Any]) -> dict[str, Any]:
         result = dict(member)
         result["category"] = "current_mk" if member.get("current") else "non_mk"
+        result["ratings"] = {
+            issue["id"]: opinion["rating"]
+            for issue in self.analysis
+            if (opinion := issue.get("members", {}).get(member["name"]))
+            and opinion.get("rating") is not None
+        }
         account = member.get("account")
         stats = self.account_stats.get(account) if account else None
         if stats:

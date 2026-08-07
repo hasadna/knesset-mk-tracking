@@ -116,7 +116,11 @@ class BigQueryRepository:
           SELECT
             s.mk_id,
             COUNT(*) AS issue_count,
-            ARRAY_AGG(STRUCT(i.slug AS slug, s.quality AS quality)) AS coverage_rows
+            ARRAY_AGG(STRUCT(
+              i.slug AS slug,
+              s.quality AS quality,
+              s.rating AS rating
+            )) AS coverage_rows
           FROM {self.prefix}.mk_issue_summary` s
           JOIN {self.prefix}.issue` i ON i.id=s.issue_id
           GROUP BY s.mk_id
@@ -172,6 +176,11 @@ class BigQueryRepository:
                 item["slug"]: item["quality"]
                 for item in row["coverage_rows"]
             }
+            ratings = {
+                item["slug"]: item["rating"]
+                for item in row["coverage_rows"]
+                if item["rating"] is not None
+            }
             roles = set(row["current_roles"])
             if "coalition" in roles:
                 bloc = "קואליציה"
@@ -198,6 +207,7 @@ class BigQueryRepository:
                     "hasData": bool(coverage),
                     "postCount": row["post_count"],
                     "coverage": coverage,
+                    "ratings": ratings,
                     "imageUrl": row["photo_url"] or "",
                     "account": row["twitter_handle"] or "",
                     "bio": row["bio_he"] or "",

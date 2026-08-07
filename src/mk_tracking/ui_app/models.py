@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HealthResponse(BaseModel):
@@ -23,6 +23,7 @@ class MkResponse(BaseModel):
     hasData: bool
     postCount: int
     coverage: dict[str, str]
+    ratings: dict[str, int] = Field(default_factory=dict)
 
 
 class IssueResponse(BaseModel):
