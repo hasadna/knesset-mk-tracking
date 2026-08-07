@@ -1,0 +1,6 @@
+[
+  {"name": "post_id", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "issue_id", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "confidence", "type": "NUMERIC", "mode": "REQUIRED"},
+  {"name": "model_version", "type": "STRING", "mode": "REQUIRED"}
+]

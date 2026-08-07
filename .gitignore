@@ -1,0 +1,37 @@
+# Python-generated files
+__pycache__/
+.pytest_cache/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Output data
+data/
+x_api_collect/data/
+ui/data/
+ui/raw/
+summary_creation/output/
+summary_creation/checkpoints/
+
+# Temporary files
+found_mks.*
+scratch/
+
+# Node / Frontend
+node_modules/
+*.tsbuildinfo
+
+# OS / System
+.DS_Store
+
+# Editor and agent config directories
+.obsidian/
+.gemini/
+.opencode/
+.claude/
+.agents/

@@ -1,0 +1,1908 @@
+[
+    {
+        "key":  "x-netanyahu",
+        "name":  "בנימין נתניהו",
+        "wikiTitle":  "בנימין נתניהו",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  99,
+        "coverage":  {
+                         "regional-security":  "none",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "strong",
+                         "october-7":  "none",
+                         "haredi-draft":  "none",
+                         "judiciary":  "none",
+                         "religion-state":  "none",
+                         "jewish-arab":  "none",
+                         "police-crime":  "strong",
+                         "cost-budget":  "none",
+                         "housing-transport":  "partial",
+                         "education-employment":  "none",
+                         "health-welfare":  "partial",
+                         "governance-trust":  "none",
+                         "media-rights":  "none"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1854829603145367552/7kQKabMB_400x400.jpg",
+        "account":  "netanyahu",
+        "bio":  "ראש הממשלה ויו״ר הליכוד https://t.co/jjO4V91WG1"
+    },
+    {
+        "key":  "mk-002",
+        "name":  "אבי דיכטר",
+        "wikiTitle":  "אבי דיכטר",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-003",
+        "name":  "אביחי בוארון",
+        "wikiTitle":  "אביחי בוארון",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-004",
+        "name":  "אופיר כץ",
+        "wikiTitle":  "אופיר כץ",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-005",
+        "name":  "אושר שקלים",
+        "wikiTitle":  "אושר שקלים",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-006",
+        "name":  "אלי דלל",
+        "wikiTitle":  "אליהו דלל",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-007",
+        "name":  "אליהו רביבו",
+        "wikiTitle":  "אליהו רביבו",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-008",
+        "name":  "אמיר אוחנה",
+        "wikiTitle":  "אמיר אוחנה",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-009",
+        "name":  "אריאל קלנר",
+        "wikiTitle":  "אריאל קלנר",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-010",
+        "name":  "אתי עטייה",
+        "wikiTitle":  "אתי עטייה",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-011",
+        "name":  "בועז ביסמוט",
+        "wikiTitle":  "בועז ביסמוט",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-012",
+        "name":  "גילה גמליאל",
+        "wikiTitle":  "גילה גמליאל",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-013",
+        "name":  "גלית דיסטל-אטבריאן",
+        "wikiTitle":  "גלית דיסטל-אטבריאן",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-014",
+        "name":  "דוד ביטן",
+        "wikiTitle":  "דוד ביטן",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-015",
+        "name":  "דן אילוז",
+        "wikiTitle":  "דן אילוז",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-016",
+        "name":  "חנוך מילביצקי",
+        "wikiTitle":  "חנוך מילביצקי",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-017",
+        "name":  "טלי גוטליב",
+        "wikiTitle":  "טלי גוטליב",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-018",
+        "name":  "יולי אדלשטיין",
+        "wikiTitle":  "יולי אדלשטיין",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-019",
+        "name":  "יריב לוין",
+        "wikiTitle":  "יריב לוין",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-020",
+        "name":  "ישראל כ\"ץ",
+        "wikiTitle":  "ישראל כ\"ץ",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-021",
+        "name":  "מאי גולן",
+        "wikiTitle":  "מאי גולן",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-022",
+        "name":  "משה סעדה",
+        "wikiTitle":  "משה סעדה",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-023",
+        "name":  "משה פסל",
+        "wikiTitle":  "משה פסל",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-024",
+        "name":  "ניסים ואטורי",
+        "wikiTitle":  "ניסים ואטורי",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-025",
+        "name":  "ניר ברקת",
+        "wikiTitle":  "ניר ברקת",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-026",
+        "name":  "עמית הלוי",
+        "wikiTitle":  "עמית הלוי",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-027",
+        "name":  "עפיף עבד",
+        "wikiTitle":  "עפיף עבד",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-028",
+        "name":  "צגה מלקו",
+        "wikiTitle":  "צגה מלקו",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-029",
+        "name":  "קטי שטרית",
+        "wikiTitle":  "קטי שטרית",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-030",
+        "name":  "שלום דנינו",
+        "wikiTitle":  "שלום דנינו",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-031",
+        "name":  "שלמה קרעי",
+        "wikiTitle":  "שלמה קרעי",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-032",
+        "name":  "ששון גואטה",
+        "wikiTitle":  "ששון גואטה",
+        "party":  "הליכוד",
+        "seats":  32,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-yairlapid",
+        "name":  "יאיר לפיד",
+        "wikiTitle":  "יאיר לפיד",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  99,
+        "coverage":  {
+                         "regional-security":  "none",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "none",
+                         "october-7":  "strong",
+                         "haredi-draft":  "none",
+                         "judiciary":  "strong",
+                         "religion-state":  "strong",
+                         "jewish-arab":  "none",
+                         "police-crime":  "none",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "none",
+                         "education-employment":  "strong",
+                         "health-welfare":  "none",
+                         "governance-trust":  "none",
+                         "media-rights":  "strong"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1999080262412464129/V-tR_2B3_400x400.jpg",
+        "account":  "yairlapid",
+        "bio":  "ראש הממשלה ה-14 | ראש האופוזיציה | יו״ר יש עתיד"
+    },
+    {
+        "key":  "mk-034",
+        "name":  "אלעזר שטרן",
+        "wikiTitle":  "אלעזר שטרן",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-035",
+        "name":  "בועז טופורובסקי",
+        "wikiTitle":  "בועז טופורובסקי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-036",
+        "name":  "דבי ביטון",
+        "wikiTitle":  "דבי ביטון",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-037",
+        "name":  "ולדימיר בליאק",
+        "wikiTitle":  "ולדימיר בליאק",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-038",
+        "name":  "טטיאנה מזרסקי",
+        "wikiTitle":  "טטיאנה מזרסקי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-039",
+        "name":  "יואב סגלוביץ",
+        "wikiTitle":  "יואב סגלוביץ",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-040",
+        "name":  "יוראי להב-הרצנו",
+        "wikiTitle":  "יוראי להב-הרצנו",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-041",
+        "name":  "יסמין פרידמן",
+        "wikiTitle":  "יסמין פרידמן",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-042",
+        "name":  "ירון לוי",
+        "wikiTitle":  "ירון לוי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-043",
+        "name":  "מאיר כהן",
+        "wikiTitle":  "מאיר כהן",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-044",
+        "name":  "מטי צרפתי הרכבי",
+        "wikiTitle":  "מטי צרפתי הרכבי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-045",
+        "name":  "מיכל שיר",
+        "wikiTitle":  "מיכל שיר",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-046",
+        "name":  "מיקי לוי",
+        "wikiTitle":  "מיקי לוי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-047",
+        "name":  "מירב בן ארי",
+        "wikiTitle":  "מירב בן ארי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-048",
+        "name":  "מירב כהן",
+        "wikiTitle":  "מירב כהן",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-049",
+        "name":  "משה טור-פז",
+        "wikiTitle":  "משה טור-פז",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-050",
+        "name":  "נאור שירי",
+        "wikiTitle":  "נאור שירי",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-051",
+        "name":  "סימון דוידסון",
+        "wikiTitle":  "סימון דוידסון",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-052",
+        "name":  "עדי עזוז",
+        "wikiTitle":  "עדי עזוז",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-053",
+        "name":  "קארין אלהרר",
+        "wikiTitle":  "קארין אלהרר",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-054",
+        "name":  "רון כץ",
+        "wikiTitle":  "רון כץ",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-055",
+        "name":  "רם בן ברק",
+        "wikiTitle":  "רם בן ברק",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-056",
+        "name":  "שלי טל מירון",
+        "wikiTitle":  "שלי טל מירון",
+        "party":  "יש עתיד",
+        "seats":  24,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-057",
+        "name":  "אוריאל בוסו",
+        "wikiTitle":  "אוריאל בוסו",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-058",
+        "name":  "ארז מלול",
+        "wikiTitle":  "ארז מלול",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-059",
+        "name":  "אריה דרעי",
+        "wikiTitle":  "אריה דרעי",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-060",
+        "name":  "חיים ביטון",
+        "wikiTitle":  "חיים ביטון",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-061",
+        "name":  "יואב בן צור",
+        "wikiTitle":  "יואב בן צור",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-062",
+        "name":  "יונתן מישרקי",
+        "wikiTitle":  "יונתן מישרקי",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-063",
+        "name":  "יוסי טייב",
+        "wikiTitle":  "יוסי טייב",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-064",
+        "name":  "ינון אזולאי",
+        "wikiTitle":  "ינון אזולאי",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-065",
+        "name":  "יעקב מרגי",
+        "wikiTitle":  "יעקב מרגי",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-066",
+        "name":  "מיכאל מלכיאלי",
+        "wikiTitle":  "מיכאל מלכיאלי",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-067",
+        "name":  "משה אבוטבול",
+        "wikiTitle":  "משה אבוטבול",
+        "party":  "ש\"ס",
+        "seats":  11,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-068",
+        "name":  "אורית פרקש-הכהן",
+        "wikiTitle":  "אורית פרקש-הכהן",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-069",
+        "name":  "איתן גינזבורג",
+        "wikiTitle":  "איתן גינזבורג",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-070",
+        "name":  "אלון שוסטר",
+        "wikiTitle":  "אלון שוסטר",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-071",
+        "name":  "בני גנץ",
+        "wikiTitle":  "בני גנץ",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-072",
+        "name":  "חילי טרופר",
+        "wikiTitle":  "חילי טרופר",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-073",
+        "name":  "יעל רון בן משה",
+        "wikiTitle":  "יעל רון בן משה",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-074",
+        "name":  "מיכאל ביטון",
+        "wikiTitle":  "מיכאל ביטון",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-075",
+        "name":  "פנינה תמנו-שטה",
+        "wikiTitle":  "פנינה תמנו-שטה",
+        "party":  "כחול לבן",
+        "seats":  8,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-rothmar",
+        "name":  "שמחה רוטמן",
+        "wikiTitle":  "שמחה רוטמן",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  100,
+        "coverage":  {
+                         "regional-security":  "none",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "strong",
+                         "october-7":  "none",
+                         "haredi-draft":  "partial",
+                         "judiciary":  "strong",
+                         "religion-state":  "partial",
+                         "jewish-arab":  "none",
+                         "police-crime":  "partial",
+                         "cost-budget":  "none",
+                         "housing-transport":  "none",
+                         "education-employment":  "none",
+                         "health-welfare":  "none",
+                         "governance-trust":  "strong",
+                         "media-rights":  "partial"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1548619177497354240/cob4pO7j_400x400.jpg",
+        "account":  "rothmar",
+        "bio":  "חבר הכנסת ה-25\nיור וועדת החוקה, חוק ומשפט.\n\nמחבר הספר #מפלגת_בגץ\n\nהיועץ המשפטי של @meshilut (בדימוס)\n\nhttps://t.co/tiHN7NS7uR"
+    },
+    {
+        "key":  "mk-077",
+        "name":  "אוהד טל",
+        "wikiTitle":  "אוהד טל",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-078",
+        "name":  "אופיר סופר",
+        "wikiTitle":  "אופיר סופר",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-079",
+        "name":  "אורית סטרוק",
+        "wikiTitle":  "אורית סטרוק",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-080",
+        "name":  "מיכל וולדיגר",
+        "wikiTitle":  "מיכל וולדיגר",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-081",
+        "name":  "משה סולומון",
+        "wikiTitle":  "משה סולומון",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-082",
+        "name":  "צבי סוכות",
+        "wikiTitle":  "צבי סוכות",
+        "party":  "הציונות הדתית",
+        "seats":  7,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-083",
+        "name":  "אורי מקלב",
+        "wikiTitle":  "אורי מקלב",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-084",
+        "name":  "יעקב אשר",
+        "wikiTitle":  "יעקב אשר",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-085",
+        "name":  "יעקב טסלר",
+        "wikiTitle":  "יעקב טסלר",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-086",
+        "name":  "יצחק גולדקנופף",
+        "wikiTitle":  "יצחק גולדקנופף",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-087",
+        "name":  "יצחק פינדרוס",
+        "wikiTitle":  "יצחק פינדרוס",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-088",
+        "name":  "מאיר פרוש",
+        "wikiTitle":  "מאיר פרוש",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-089",
+        "name":  "משה גפני",
+        "wikiTitle":  "משה גפני",
+        "party":  "יהדות התורה",
+        "seats":  7,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-itamarbengvir",
+        "name":  "איתמר בן גביר",
+        "wikiTitle":  "איתמר בן גביר",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  96,
+        "coverage":  {
+                         "regional-security":  "strong",
+                         "gaza-day-after":  "partial",
+                         "conflict-territories":  "none",
+                         "october-7":  "none",
+                         "haredi-draft":  "partial",
+                         "judiciary":  "strong",
+                         "religion-state":  "none",
+                         "jewish-arab":  "none",
+                         "police-crime":  "strong",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "none",
+                         "education-employment":  "none",
+                         "health-welfare":  "none",
+                         "governance-trust":  "none",
+                         "media-rights":  "none"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1650934365604421652/C6W6f07J_400x400.jpg",
+        "account":  "itamarbengvir",
+        "bio":  "השר לביטחון לאומי. יו\u0027\u0027ר עוצמה יהודית. נשוי לאילה ואב לשישה ילדים מתוקים."
+    },
+    {
+        "key":  "mk-091",
+        "name":  "יצחק וסרלאוף",
+        "wikiTitle":  "יצחק וסרלאוף",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-092",
+        "name":  "יצחק קרויזר",
+        "wikiTitle":  "יצחק קרויזר",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-093",
+        "name":  "לימור סון הר-מלך",
+        "wikiTitle":  "לימור סון הר-מלך",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-094",
+        "name":  "עמיחי אליהו",
+        "wikiTitle":  "עמיחי אליהו",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-095",
+        "name":  "צביקה פוגל",
+        "wikiTitle":  "צביקה פוגל",
+        "party":  "עוצמה יהודית",
+        "seats":  6,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-avigdorliberman",
+        "name":  "אביגדור ליברמן",
+        "wikiTitle":  "אביגדור ליברמן",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  98,
+        "coverage":  {
+                         "regional-security":  "strong",
+                         "gaza-day-after":  "partial",
+                         "conflict-territories":  "partial",
+                         "october-7":  "strong",
+                         "haredi-draft":  "strong",
+                         "judiciary":  "strong",
+                         "religion-state":  "strong",
+                         "jewish-arab":  "none",
+                         "police-crime":  "partial",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "partial",
+                         "education-employment":  "strong",
+                         "health-welfare":  "none",
+                         "governance-trust":  "strong",
+                         "media-rights":  "partial"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1653023418214764546/GsP1HEqv_400x400.jpg",
+        "account":  "AvigdorLiberman",
+        "bio":  "יו\"ר ישראל ביתנו | Chairman of Israel Beytenu party"
+    },
+    {
+        "key":  "mk-097",
+        "name":  "חמד עמאר",
+        "wikiTitle":  "חמד עמאר",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-098",
+        "name":  "יבגני סובה",
+        "wikiTitle":  "יבגני סובה",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-099",
+        "name":  "יוליה מלינובסקי",
+        "wikiTitle":  "יוליה מלינובסקי",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-100",
+        "name":  "עודד פורר",
+        "wikiTitle":  "עודד פורר",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-101",
+        "name":  "שרון ניר",
+        "wikiTitle":  "שרון ניר",
+        "party":  "ישראל ביתנו",
+        "seats":  6,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-102",
+        "name":  "אימאן ח\u0027טיב-יאסין",
+        "wikiTitle":  "אימאן ח\u0027טיב-יאסין",
+        "party":  "רע\"מ",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-103",
+        "name":  "וליד אל-הואשלה",
+        "wikiTitle":  "וליד אל-הואשלה",
+        "party":  "רע\"מ",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-104",
+        "name":  "וליד טאהא",
+        "wikiTitle":  "וליד טאהא",
+        "party":  "רע\"מ",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-105",
+        "name":  "יאסר חוג\u0027יראת",
+        "wikiTitle":  "יאסר חוג\u0027יראת",
+        "party":  "רע\"מ",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-mansourab",
+        "name":  "מנסור עבאס",
+        "wikiTitle":  "מנסור עבאס",
+        "party":  "רע\"מ",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1841235551195676674/mOoHv807_400x400.png",
+        "account":  "MansourAB",
+        "bio":  ""
+    },
+    {
+        "key":  "x-ahmad_tibi",
+        "name":  "אחמד טיבי",
+        "wikiTitle":  "אחמד טיבי",
+        "party":  "חד\"ש-תע\"ל",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  true,
+        "postCount":  82,
+        "coverage":  {
+                         "regional-security":  "partial",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "strong",
+                         "october-7":  "partial",
+                         "haredi-draft":  "none",
+                         "judiciary":  "none",
+                         "religion-state":  "partial",
+                         "jewish-arab":  "strong",
+                         "police-crime":  "strong",
+                         "cost-budget":  "none",
+                         "housing-transport":  "none",
+                         "education-employment":  "partial",
+                         "health-welfare":  "partial",
+                         "governance-trust":  "partial",
+                         "media-rights":  "partial"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/478417496530096128/b90s9amt_400x400.jpeg",
+        "account":  "Ahmad_tibi",
+        "bio":  "Knesset member but physician , חבר כנסת אבל רופא.. عضو كنيست ولكن..طبيب!"
+    },
+    {
+        "key":  "mk-108",
+        "name":  "איימן עודה",
+        "wikiTitle":  "איימן עודה",
+        "party":  "חד\"ש-תע\"ל",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-109",
+        "name":  "סמיר בן סעיד",
+        "wikiTitle":  "סמיר בן סעיד",
+        "party":  "חד\"ש-תע\"ל",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-110",
+        "name":  "עאידה תומא סלימאן",
+        "wikiTitle":  "עאידה תומא סלימאן",
+        "party":  "חד\"ש-תע\"ל",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-111",
+        "name":  "עופר כסיף",
+        "wikiTitle":  "עופר כסיף",
+        "party":  "חד\"ש-תע\"ל",
+        "seats":  5,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-112",
+        "name":  "אכרם חסון",
+        "wikiTitle":  "אכרם חסון",
+        "party":  "הימין הממלכתי",
+        "seats":  4,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-113",
+        "name":  "זאב אלקין",
+        "wikiTitle":  "זאב אלקין",
+        "party":  "הימין הממלכתי",
+        "seats":  4,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-114",
+        "name":  "מישל בוסקילה",
+        "wikiTitle":  "מישל בוסקילה",
+        "party":  "הימין הממלכתי",
+        "seats":  4,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-115",
+        "name":  "שרן השכל",
+        "wikiTitle":  "שרן השכל",
+        "party":  "הימין הממלכתי",
+        "seats":  4,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-116",
+        "name":  "אפרת רייטן",
+        "wikiTitle":  "אפרת רייטן",
+        "party":  "העבודה",
+        "seats":  4,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-117",
+        "name":  "גלעד קריב",
+        "wikiTitle":  "גלעד קריב",
+        "party":  "העבודה",
+        "seats":  4,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-118",
+        "name":  "מרב מיכאלי",
+        "wikiTitle":  "מרב מיכאלי",
+        "party":  "העבודה",
+        "seats":  4,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-119",
+        "name":  "נעמה לזימי",
+        "wikiTitle":  "נעמה לזימי",
+        "party":  "העבודה",
+        "seats":  4,
+        "bloc":  "אופוזיציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "mk-120",
+        "name":  "אבי מעוז",
+        "wikiTitle":  "אבי מעוז",
+        "party":  "נעם",
+        "seats":  1,
+        "bloc":  "קואליציה",
+        "current":  true,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+
+                     }
+    },
+    {
+        "key":  "x-regev_miri",
+        "name":  "מירי רגב",
+        "wikiTitle":  "מירי רגב",
+        "party":  "הליכוד",
+        "seats":  0,
+        "bloc":  "חברת הליכוד ושרה; אינה ברשימת 120 הח״כים המכהנים בקובץ הבסיס",
+        "current":  false,
+        "hasData":  true,
+        "postCount":  90,
+        "coverage":  {
+                         "regional-security":  "strong",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "strong",
+                         "october-7":  "none",
+                         "haredi-draft":  "none",
+                         "judiciary":  "partial",
+                         "religion-state":  "none",
+                         "jewish-arab":  "partial",
+                         "police-crime":  "partial",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "strong",
+                         "education-employment":  "none",
+                         "health-welfare":  "partial",
+                         "governance-trust":  "partial",
+                         "media-rights":  "partial"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1609429727919456256/uiplO246_400x400.jpg",
+        "account":  "regev_miri",
+        "bio":  "תא״ל (מיל׳) מירי רגב, שרת התחבורה והבטיחות בדרכים וחברת הקבינט המדיני בטחוני."
+    },
+    {
+        "key":  "mk-122",
+        "name":  "גדי אייזנקוט",
+        "wikiTitle":  "גדי איזנקוט",
+        "party":  "ישר! עם איזנקוט",
+        "seats":  0,
+        "bloc":  "מפלגה חוץ־פרלמנטרית",
+        "current":  false,
+        "hasData":  false,
+        "postCount":  0,
+        "coverage":  {
+                         "regional-security":  "none",
+                         "gaza-day-after":  "none",
+                         "conflict-territories":  "none",
+                         "october-7":  "none",
+                         "haredi-draft":  "none",
+                         "judiciary":  "none",
+                         "religion-state":  "none",
+                         "jewish-arab":  "none",
+                         "police-crime":  "none",
+                         "cost-budget":  "none",
+                         "housing-transport":  "none",
+                         "education-employment":  "none",
+                         "health-welfare":  "none",
+                         "governance-trust":  "none",
+                         "media-rights":  "none"
+                     }
+    },
+    {
+        "key":  "x-yairgolan1",
+        "name":  "יאיר גולן",
+        "wikiTitle":  "יאיר גולן",
+        "party":  "הדמוקרטים",
+        "seats":  0,
+        "bloc":  "מפלגה חוץ־פרלמנטרית",
+        "current":  false,
+        "hasData":  true,
+        "postCount":  91,
+        "coverage":  {
+                         "regional-security":  "strong",
+                         "gaza-day-after":  "partial",
+                         "conflict-territories":  "strong",
+                         "october-7":  "strong",
+                         "haredi-draft":  "strong",
+                         "judiciary":  "strong",
+                         "religion-state":  "strong",
+                         "jewish-arab":  "strong",
+                         "police-crime":  "strong",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "partial",
+                         "education-employment":  "partial",
+                         "health-welfare":  "strong",
+                         "governance-trust":  "strong",
+                         "media-rights":  "strong"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/1764606576013303809/g7ewwY4w_400x400.jpg",
+        "account":  "YairGolan1",
+        "bio":  "סגן הרמטכ\"ל לשעבר, אלוף (מיל׳), יו\"ר הדמוקרטים – המפלגה הדמוקרטית ליברלית היחידה והחזקה בישראל 🇮🇱\nמעל 100,000 איש ורק התחלנו!"
+    },
+    {
+        "key":  "x-naftalibennett",
+        "name":  "נפתלי בנט",
+        "wikiTitle":  "נפתלי בנט",
+        "party":  "בנט 2026",
+        "seats":  0,
+        "bloc":  "מפלגה חוץ־פרלמנטרית",
+        "current":  false,
+        "hasData":  true,
+        "postCount":  95,
+        "coverage":  {
+                         "regional-security":  "strong",
+                         "gaza-day-after":  "partial",
+                         "conflict-territories":  "partial",
+                         "october-7":  "strong",
+                         "haredi-draft":  "strong",
+                         "judiciary":  "partial",
+                         "religion-state":  "partial",
+                         "jewish-arab":  "partial",
+                         "police-crime":  "partial",
+                         "cost-budget":  "partial",
+                         "housing-transport":  "none",
+                         "education-employment":  "partial",
+                         "health-welfare":  "none",
+                         "governance-trust":  "strong",
+                         "media-rights":  "strong"
+                     },
+        "imageUrl":  "https://pbs.twimg.com/profile_images/2082116910489939968/m2EpS_Ro_400x400.jpg",
+        "account":  "naftalibennett",
+        "bio":  "ראש הממשלה ה-13 של מדינת ישראל • 13th Prime Minister of Israel• הצטרפו אלינו בלינק"
+    }
+]

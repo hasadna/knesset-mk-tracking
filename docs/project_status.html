@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK Tracking — Project Status & Bill Processing Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #151c2d;
+      --bg-card-hover: #1e293b;
+      --bg-glass: rgba(21, 28, 45, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.3);
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      
+      --cyan: #06b6d4;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --purple: #a855f7;
+      
+      --font-heading: 'Outfit', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: white;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem 1.5rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, var(--primary-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* Grid Layout */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-accent);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .icon-primary { background: rgba(99, 102, 241, 0.15); color: var(--primary-light); }
+    .icon-cyan { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+    .icon-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+    .icon-purple { background: rgba(168, 85, 247, 0.15); color: var(--purple); }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .card-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Important Question Highlight Section */
+    .feature-banner {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+      border: 1px solid var(--border-accent);
+      border-radius: 20px;
+      padding: 2.25rem;
+      margin-bottom: 3.5rem;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .answer-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fda4af;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .banner-title {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: #ffffff;
+    }
+
+    .banner-content {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .banner-content strong {
+      color: var(--text-primary);
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .comp-box {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border-left: 4px solid var(--primary);
+    }
+
+    .comp-box.did {
+      border-left-color: var(--cyan);
+    }
+
+    .comp-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Workflow Pipeline Diagram */
+    .section-header {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+    }
+
+    .pipeline-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .pipeline-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      position: relative;
+    }
+
+    .step-card {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.5rem;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: var(--bg-main);
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .step-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    .step-desc {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .code-chip {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--primary-light);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.6rem;
+      word-break: break-all;
+    }
+
+    /* Table details */
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.93rem;
+      color: var(--text-secondary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    @media (max-width: 768px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 {
+        font-size: 2.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">MK</div>
+      <div class="brand-title">MK-Tracking System</div>
+    </div>
+    <div class="header-badge">
+      <div class="status-dot"></div>
+      Live BigQuery Architecture (v4)
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Hero Section -->
+    <div class="hero">
+      <h1>Project Status & Parliamentary Processing</h1>
+      <p>Technical report on the system architecture, Gemini-powered opinion synthesis, and end-to-end legislative bill data processing pipelines.</p>
+    </div>
+
+    <!-- 3 Core Pillars Grid -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-icon icon-primary">📊</div>
+        <div class="card-title">Deployed Infrastructure</div>
+        <div class="card-text">
+          Deployed on <strong>Google Cloud BigQuery</strong> (Dataset <code>mk_tracking</code>). Uses a React 19 + Vite frontend backed by FastAPI reading directly from BigQuery.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-cyan">🤖</div>
+        <div class="card-title">Gemini Embedding & Gating</div>
+        <div class="card-text">
+          Every social post is embedded with <code>gemini-embedding-2</code> (3,072 dims). K-means ($K=30$) filters out non-political noise before scoring against 7 core issues.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-purple">🏛️</div>
+        <div class="card-title">Knesset Open Data</div>
+        <div class="card-text">
+          Ingests MKs, party affiliations, proposed/enacted bills, vote events, and individual voting records directly from Open Knesset APIs.
+        </div>
+      </div>
+    </div>
+
+    <!-- Question 2 Banner: Are Bills Included in Summaries? -->
+    <div class="feature-banner">
+      <div class="answer-tag">❌ Question Answered</div>
+      <div class="banner-title">Are bills taken into account in the opinion summaries?</div>
+      <div class="banner-content">
+        <strong>No, opinion summaries currently rely EXCLUSIVELY on social media (X/Twitter) posts.</strong>
+        <br><br>
+        The summary generation pipeline (<code>BigQuerySource.load_inputs()</code>) passes top Twitter posts to Gemini. The model's strict system prompt explicitly forbids using external sources or parliamentary data when generating stances:
+        <br>
+        <span style="font-family: var(--font-mono); color: var(--amber); display: block; margin-top: 0.5rem;">
+          "אתה מנתח ראיות פוליטיות בעברית. מותר להסיק אך ורק מהציוצים שסופקו."
+        </span>
+        
+        <div class="comparison-grid">
+          <div class="comp-box">
+            <div class="comp-title" style="color: var(--primary-light);">
+              💬 "What They Said" (Social Stance)
+            </div>
+            <div style="font-size: 0.9rem;">
+              Generated inside <code>mk_issue_summary</code>. Derived purely from social media posts to reflect public statements and rhetoric.
+            </div>
+          </div>
+          <div class="comp-box did">
+            <div class="comp-title" style="color: var(--cyan);">
+              🗳️ "What They Did" (Parliamentary Record)
+            </div>
+            <div style="font-size: 0.9rem;">
+              Tracked via <code>bill</code>, <code>bill_issue</code>, and <code>mk_vote</code>. Aggregated in SQL views like <code>v_said_vs_did</code> to compare votes against rhetoric.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Question 3: Data Processing Flow on Bills -->
+    <div class="section-header">
+      <div class="section-title">Post-Scraping Bill Data Processing Workflow</div>
+      <div class="section-subtitle">How raw Knesset legislative bills are transformed, stored, evaluated by Gemini, and mapped to policy issues.</div>
+    </div>
+
+    <div class="pipeline-wrapper">
+      <div class="pipeline-steps">
+        
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-title">Ingestion & Storage</div>
+          <div class="step-desc">
+            Fetches <code>kns_bill</code> and documents from Open Knesset. Deduplicates on <code>knesset_bill_id</code> and uploads full enacted law PDFs to GCP Cloud Storage.
+          </div>
+          <div class="code-chip">upload_over_to_bigquery.py</div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-title">Text Extraction</div>
+          <div class="step-desc">
+            Downloads law documents from GCS (<code>gs://.../enacted_laws/bill_*.pdf</code>) and parses text using <code>fitz</code> (PyMuPDF) or <code>python-docx</code>.
+          </div>
+          <div class="code-chip">bill_issues/cli.py</div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-title">LLM Issue Evaluation</div>
+          <div class="step-desc">
+            Sends title, summary, and full text to <code>gemini-3.6-flash</code>. Returns structured scores ($0.0 - 1.0$) and a Hebrew rationale note for each issue.
+          </div>
+          <div class="code-chip">evaluate_bill()</div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div class="step-title">Database Storage & Views</div>
+          <div class="step-desc">
+            Inserts evaluated mappings into <code>mk_tracking.bill_issue</code>. Aggregates authorship in <code>v_mk_issue_authorship</code> and votes in <code>v_said_vs_did</code>.
+          </div>
+          <div class="code-chip">mk_tracking.bill_issue</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Database Schema Table Summary -->
+    <div class="section-header">
+      <div class="section-title">Key Database Tables for Legislative Bills</div>
+      <div class="section-subtitle">Database schema specifications in BigQuery dataset <code>mk_tracking</code>.</div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Table Name</th>
+            <th>Natural Key</th>
+            <th>Primary Content & Role</th>
+            <th>Mapping / AI Processing</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-family: var(--font-mono); color: var(--primary-light);">mk_tracking.bill</td>
+            <td style="font-family: var(--font-mono);">knesset_bill_id</td>
+            <td>Stores scraped bill titles, Hebrew summaries, status, and GCS document URIs.</td>
+            <td>Raw source data ingested from Open Knesset API.</td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--font-mono); color: var(--cyan);">mk_tracking.bill_issue</td>
+            <td style="font-family: var(--font-mono);">(bill_id, issue_id)</td>
+            <td>Junction table connecting bills to policy issues with mapping notes.</td>
+            <td>Populated by <code>gemini-3.6-flash</code> with confidence score & Hebrew rationale.</td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--font-mono); color: var(--purple);">mk_tracking.bill_author</td>
+            <td style="font-family: var(--font-mono);">(bill_id, mk_id)</td>
+            <td>Links MKs to bills they initiated or co-sponsored.</td>
+            <td>Used in <code>v_mk_issue_authorship</code> view for legislative initiative counts.</td>
+          </tr>
+          <tr>
+            <td style="font-family: var(--font-mono); color: var(--emerald);">mk_tracking.vote_event</td>
+            <td style="font-family: var(--font-mono);">external_key</td>
+            <td>Covers plenum readings and committee motions related to bills.</td>
+            <td>Joined with <code>mk_vote</code> to measure parliamentary voting history per issue.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <footer>
+    MK-Tracking Project Architecture & Technical Report • Generated 2026-07-31
+  </footer>
+
+</body>
+</html>

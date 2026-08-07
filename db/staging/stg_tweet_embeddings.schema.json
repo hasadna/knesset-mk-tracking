@@ -1,0 +1,4 @@
+[
+  {"name": "post_id", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "embedding", "type": "FLOAT", "mode": "REPEATED"}
+]

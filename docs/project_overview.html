@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MK Tracking — מערכת מעקב נבחרי ציבור: ארכיטקטורה, זרימת מידע ומקורות נתונים</title>
+  <meta name="description" content="סקירה טכנית מקיפה של פרויקט MK Tracking: זרימת נתונים מקצה לקצה, אלגוריתמי AI ובינה מלאכותית, תצוגת המשתמש ומטריצת מקורות המידע (Data Provenance).">
+  
+  <!-- Modern Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Heebo:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #121826;
+      --bg-card-hover: #1a2235;
+      --bg-glass: rgba(18, 24, 38, 0.82);
+      --bg-code: #0d121f;
+      
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.35);
+      --border-glow: rgba(6, 182, 212, 0.4);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-glow: rgba(99, 102, 241, 0.22);
+
+      --cyan: #06b6d4;
+      --cyan-light: #67e8f9;
+      --emerald: #10b981;
+      --emerald-light: #6ee7b7;
+      --amber: #f59e0b;
+      --amber-light: #fde047;
+      --rose: #f43f5e;
+      --purple: #a855f7;
+      --blue: #3b82f6;
+
+      --font-heading: 'Heebo', 'Outfit', system-ui, -apple-system, sans-serif;
+      --font-body: 'Heebo', system-ui, -apple-system, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.65;
+      direction: rtl;
+      background-image: 
+        radial-gradient(circle at 10% 12%, rgba(99, 102, 241, 0.12) 0%, transparent 35%),
+        radial-gradient(circle at 90% 60%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.08) 0%, transparent 45%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    /* Header Navigation */
+    header {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: #fff;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(to left, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .nav-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .badge {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--emerald-light);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--emerald);
+      box-shadow: 0 0 12px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.15); }
+    }
+
+    /* Container */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 6rem 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      padding: 2rem 1rem 1rem 1rem;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--primary-light);
+      padding: 0.35rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, var(--cyan-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* Quick Jump Navigation */
+    .quick-nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .quick-nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.5rem 1.25rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .quick-nav-btn:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      border-color: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    /* Section Styling */
+    .section {
+      margin-bottom: 4rem;
+    }
+
+    .section-header {
+      margin-bottom: 2rem;
+      border-right: 4px solid var(--primary);
+      padding-right: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Pillar Cards Grid */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 1.75rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-accent);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .icon-indigo { background: rgba(99, 102, 241, 0.15); color: var(--primary-light); }
+    .icon-cyan { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+    .icon-purple { background: rgba(168, 85, 247, 0.15); color: var(--purple); }
+    .icon-emerald { background: rgba(16, 185, 129, 0.15); color: var(--emerald-light); }
+    .icon-amber { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .card-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Core Concept: Said vs Did */
+    .concept-banner {
+      background: linear-gradient(135deg, rgba(18, 24, 38, 0.95), rgba(26, 34, 53, 0.95));
+      border: 1px solid var(--border-accent);
+      border-radius: 20px;
+      padding: 2.25rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+
+    .concept-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .concept-title {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .concept-grid { grid-template-columns: 1fr; }
+    }
+
+    .concept-box {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .concept-box.said {
+      border-right: 4px solid var(--primary-light);
+    }
+
+    .concept-box.did {
+      border-right: 4px solid var(--cyan);
+    }
+
+    .box-title {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .box-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+    }
+
+    .box-list li {
+      position: relative;
+      padding-right: 1.25rem;
+    }
+
+    .box-list li::before {
+      content: '•';
+      position: absolute;
+      right: 0;
+      color: var(--primary-light);
+      font-weight: bold;
+    }
+
+    .concept-box.did .box-list li::before {
+      color: var(--cyan);
+    }
+
+    /* Pipeline Workflow Interactive Steps */
+    .pipeline-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    .pipeline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .step-detail-card {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.75rem;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .step-detail-card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .step-num-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      color: white;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--primary-glow);
+      flex-shrink: 0;
+    }
+
+    .step-detail-card {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.75rem;
+    }
+
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .step-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .code-tag {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: var(--bg-code);
+      color: var(--cyan-light);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      direction: ltr;
+    }
+
+    .step-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 868px) {
+      .step-grid { grid-template-columns: 1fr; }
+    }
+
+    .tech-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .tech-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+    }
+
+    /* UI Presentation Breakdown Cards */
+    .ui-showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (max-width: 900px) {
+      .ui-showcase-grid { grid-template-columns: 1fr; }
+    }
+
+    .ui-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ui-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .ui-card-title {
+      font-family: var(--font-heading);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .mockup-container {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+    }
+
+    .mockup-item {
+      padding: 0.6rem;
+      border-bottom: 1px dashed var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .mockup-item:last-child {
+      border-bottom: none;
+    }
+
+    .mockup-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .mockup-val {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--cyan-light);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      direction: ltr;
+    }
+
+    /* Provenance Table */
+    .table-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: 360px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus {
+      border-color: var(--primary-light);
+    }
+
+    .filter-btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .table-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-primary);
+    }
+
+    .ui-element-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .endpoint-chip {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--amber-light);
+      direction: ltr;
+      display: inline-block;
+    }
+
+    .table-chip {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--primary-light);
+      background: rgba(99, 102, 241, 0.12);
+      padding: 0.2rem 0.5rem;
+      border-radius: 5px;
+      direction: ltr;
+      display: inline-block;
+    }
+
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .src-knesset { background: rgba(6, 182, 212, 0.15); color: var(--cyan-light); border: 1px solid rgba(6, 182, 212, 0.3); }
+    .src-twitter { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .src-gemini { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .src-bq { background: rgba(16, 185, 129, 0.15); color: var(--emerald-light); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Schema Accordion */
+    .schema-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .schema-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    .schema-title {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      color: var(--cyan-light);
+      margin-bottom: 0.5rem;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .schema-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .schema-cols {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .schema-cols li {
+      background: var(--bg-main);
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .col-name { color: var(--text-primary); font-weight: 600; }
+    .col-type { color: var(--text-muted); }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      background: var(--bg-main);
+    }
+
+    footer p {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">MK</div>
+      <div class="brand-text">
+        <div class="brand-title">MK Tracking System</div>
+        <div class="brand-subtitle">מערכת AI ומעקב עמדות חברי כנסת</div>
+      </div>
+    </div>
+    <div class="nav-badges">
+      <div class="badge">
+        <div class="status-dot"></div>
+        GCP BigQuery v4 Live
+      </div>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+
+    <!-- Hero Section -->
+    <div class="hero">
+      <div class="hero-tag">🏛️ Hasadna Hackathon • Project Architecture</div>
+      <h1>מעקב חברי כנסת: ארכיטקטורה, צינור נתונים ומקורות המידע</h1>
+      <p>
+        סקירה טכנית מקיפה של מערכת <strong>MK Tracking</strong> — פלטפורמת AI המשווה בין ההתבטאויות הפומביות של חברי הכנסת ברשתות החברתיות ("מה אמר") לבין פעילותם הפרלמנטרית בפועל ("מה עשה") ב-7 נושאי ליבה פוליטיים.
+      </p>
+
+      <!-- Quick Nav -->
+      <div class="quick-nav">
+        <a href="#concept" class="quick-nav-btn">💡 הקונספט המרכזי</a>
+        <a href="#pipeline" class="quick-nav-btn">🔄 צינור הנתונים (Pipeline)</a>
+        <a href="#ui-presentation" class="quick-nav-btn">🖥️ תצוגת המשתמש (UI)</a>
+        <a href="#provenance" class="quick-nav-btn">🔍 מטריצת מקורות הנתונים</a>
+        <a href="#schemas" class="quick-nav-btn">🗄️ סכמת בסיס הנתונים</a>
+      </div>
+    </div>
+
+    <!-- 3 Core Pillars Grid -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-icon icon-indigo">📊</div>
+        <div class="card-title">תשתית ענן BigQuery</div>
+        <div class="card-text">
+          בסיס נתונים מרכזי ב-<strong>Google Cloud BigQuery</strong> (Dataset <code>mk_tracking</code>, סכמה v4). כולל טבלאות מרוכזות ומודלים ממומשים (Materialized Views) לשליפה מהירה מתחת ל-100ms.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-cyan">🤖</div>
+        <div class="card-title">עיבוד שפה ו-AI (Gemini)</div>
+        <div class="card-text">
+          וקטוריזציה באמצעות <code>gemini-embedding-2</code> (3,072 ממדים), אשכול K-Means ($K=30$) לסנון רעשים, וניתוח נימוקים וסיכומי עמדות עקביים בעברית עם <code>gemini-3.6-flash</code>.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon icon-purple">🏛️</div>
+        <div class="card-title">ממשק משתמש מתקדם</div>
+        <div class="card-text">
+          אפליקציית Web ב-React 19 + Vite + TypeScript הנתמכת ע"י FastAPI backend. מציגה כרטיסי ח"כים, ניתוחי עמדות, ציוצים תומכים ולוח הצבעות פרלמנטרי מפורט.
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Concept Section -->
+    <div class="section" id="concept">
+      <div class="concept-banner">
+        <div class="concept-header">
+          <div class="concept-title">💡 הקונספט המרכזי: "מה אמר" מול "מה עשה"</div>
+          <span class="code-tag">Architecture Boundary: Said vs. Did</span>
+        </div>
+        
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+          חברי כנסת אינם מפרסמים לרוב מצע מפורט ומבוסס. המערכת מפרידה באופן קשיח בין הדיבור הציבורי לבין הפעילות הפרלמנטרית בפועל, ומונעת עירוב מידע בשלב ה-AI:
+        </p>
+
+        <div class="concept-grid">
+          <div class="concept-box said">
+            <div class="box-title" style="color: var(--primary-light);">
+              💬 "מה אמר" (Social Media Rhetoric)
+            </div>
+            <ul class="box-list">
+              <li>סיכומי עמדות בטבלאות <code>mk_issue_summary</code>.</li>
+              <li>מבוססים <strong>אך ורק</strong> על ציוצים שנאספו ברשת X (טוויטר).</li>
+              <li>הנחיית פרומפט קשיחה למודל: <em>"אתה מנתח ראיות פוליטיות. מותר להסיק אך ורק מהציוצים שסופקו."</em></li>
+              <li>ציטוט קישורים ישירים וציטוט הציוצים התומכים למניעת הזיות.</li>
+            </ul>
+          </div>
+
+          <div class="concept-box did">
+            <div class="box-title" style="color: var(--cyan-light);">
+              🗳️ "מה עשה" (Parliamentary Record)
+            </div>
+            <ul class="box-list">
+              <li>נרשם בנפרד בטבלאות <code>bill</code>, <code>bill_author</code>, ו-<code>mk_vote</code>.</li>
+              <li>סיווג נושאי להצעות חוק מבוצע בנפרד באמצעות <code>bill_issue</code>.</li>
+              <li>מרוכז במודל לקריאה <code>tbl_mk_issue_bill_votes</code> להצגת היסטוריית הצבעות ויוזמות חקיקה ישירות ב-UI.</li>
+              <li>קישורים ישירים לפורטל החקיקה של הכנסת ולכנסת פתוחה.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pipeline Section -->
+    <div class="section" id="pipeline">
+      <div class="section-header">
+        <div class="section-title">🔄 צינור הנתונים (End-to-End Data Pipeline)</div>
+        <div class="section-subtitle">תהליך איסוף הנתונים, הוקטוריזציה, הסיווג, הניתוח והחשיפה ב-API</div>
+      </div>
+
+      <div class="pipeline-container">
+        <div class="pipeline-list">
+          
+          <!-- Step 1 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">1</div>
+                <div class="step-title">שלב 1: איסוף נתונים גולמיים מהכנסת ומהרשתות החברתיות</div>
+              </div>
+              <span class="code-tag">x_api_collect/ & knesset_data</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  המערכת קולטת מידע משני מקורות עיקריים:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li><strong>נתוני כנסת:</strong> שואבת נתוני חברי כנסת (<code>mk</code>), מפלגות, שיוכים (<code>mk_affiliation</code>), תפקידים (<code>mk_role</code>), הצעות חוק (<code>bill</code>), יוזמי חוקים (<code>bill_author</code>), אירועי הצבעה (<code>vote_event</code>), והצבעות פרטניות (<code>mk_vote</code>) מ-Open Knesset / Knesset OData API.</li>
+                  <li><strong>נתוני רשתות חברתיות:</strong> קולטת ציוצים מטוויטר/X אל טבלת <code>social_post</code> המשויכים לחשבונות <code>mk_social_account</code>.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">טבלאות BigQuery יעד:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">mk_tracking.mk</span>
+                  <span class="tech-pill">mk_tracking.party</span>
+                  <span class="tech-pill">mk_tracking.social_post</span>
+                  <span class="tech-pill">mk_tracking.bill</span>
+                  <span class="tech-pill">mk_tracking.vote_event</span>
+                  <span class="tech-pill">mk_tracking.mk_vote</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">2</div>
+                <div class="step-title">שלב 2: יצירת וקטורים אקטיביים ואשכול K-Means לסנון רעשים</div>
+              </div>
+              <span class="code-tag">big_query_to_data.py</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  מנגנון העיבוד הווקטורי המרכזי מבוסס ענן Vertex AI:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li>כל ציוץ מיוצר לו וקטור בנפח 3,072 ממדים עם המודל <code>gemini-embedding-2</code>. הווקטורים נשמרים ב-BigQuery ובקובץ צ'קפוינט מקומי (<code>tweet_embeddings.npz</code>).</li>
+                  <li>נבנו <strong>56 עוגנים סמנטיים (Semantic Anchors)</strong> ל-7 הנושאים הפוליטיים (בעברית, אנגלית וערבית) בטבלת <code>issue_anchor</code>.</li>
+                  <li>אלגוריתם K-Means עם $K=30$ מאגד את כל הציוצים לאשכולות. המודל <code>gemini-2.5-flash</code> מפרש את הנושא של כל אשכול ומזהה אשכולות "זבל" (שרשורים לא פוליטיים, ברכות יומולדת וכו') המסומנים ב-<code>is_garbage = TRUE</code>.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">טכנולוגיות ומודלים:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">gemini-embedding-2</span>
+                  <span class="tech-pill">K-Means (K=30)</span>
+                  <span class="tech-pill">gemini-2.5-flash</span>
+                  <span class="tech-pill">tweet_cluster</span>
+                  <span class="tech-pill">issue_anchor</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">3</div>
+                <div class="step-title">שלב 3: סיווג ציוצים לפי 7 נושאי הליבה (Issue Scoring)</div>
+              </div>
+              <span class="code-tag">src/mk_tracking/bigquery_issue_scoring.py</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  תהליך השיוך האלגוריתמי של כל ציוץ לנושאים הפוליטיים:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li>חישוב <strong>Divergence/Cosine Similarity</strong> מול 8 העוגנים של כל נושא, ולקיחת ערך המקסימום.</li>
+                  <li>הפעלת פונקציית Softmax עם טמפרטורה $T=0.07$ לקבלת התפלגות הסתברויות בין 7 הנושאים.</li>
+                  <li>סינון קשיח: ציוצים באשכולות זבל, או ציוצים קצרים מ-16 תווים, מקבלים הסתברות 0.</li>
+                  <li>תוצאות השיוך והאמינות (Confidence) נשמרות בטבלת <code>post_issue</code>.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">פלט סיווג:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">mk_tracking.post_issue</span>
+                  <span class="tech-pill">confidence >= 0.20</span>
+                  <span class="tech-pill">is_concrete_promise</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">4</div>
+                <div class="step-title">שלב 4: מנוע סיכום עמדות ונימוקים בבינה מלאכותית (AI Summarization)</div>
+              </div>
+              <span class="code-tag">src/mk_tracking/summary_creation/</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  צינור ייצור סיכומי העמדות לכל חבר כנסת ונושא:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li>לכל צמד <code>(mk_id, issue_id)</code>, נשלפים הציוצים בעלי דירוג המעורבות והרלוונטיות הגבוהים ביותר.</li>
+                  <li>מודל השפה <code>gemini-3.6-flash</code> מנתח את הראיות ומייצר סיכום עמדה מנומק בעברית (<code>summary_he</code>), דירוג בסולם המדע (<code>rating</code>), רמת כיסוי ראייתי (<code>quality</code>: strong, moderate, weak, none), ומגבלות מידע (<code>limitations</code>).</li>
+                  <li>הציוצים ששימשו כראיה מבוססת מקושרים ישירות בטבלת הצומת <code>mk_issue_summary_supporting_post</code>.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">טבלאות תוצר:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">mk_issue_summary</span>
+                  <span class="tech-pill">mk_issue_summary_supporting_post</span>
+                  <span class="tech-pill">gemini-3.6-flash</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">5</div>
+                <div class="step-title">שלב 5: סיווג חוקים ומימוש מודל הצבעות לקריאה מהירה</div>
+              </div>
+              <span class="code-tag">bill_issues/cli.py & v_mk_issue_bill_votes</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  עיבוד הצעות חוק והצבעות פרלמנטריות:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li>הצעות חוק שעברו הצבעה מ-2015 ואילך מועברות להערכה סמנטית של המודל <code>gemini-3.6-flash</code> לקביעת השיוך ל-7 הנושאים עם נימוק בעברית בטבלת <code>bill_issue</code>.</li>
+                  <li>נבנה View מרוכז המאחד את החוקים, היוזמים (<code>bill_author</code>), הצבעות המליאה והוועדות (<code>vote_event</code> + <code>mk_vote</code>).</li>
+                  <li>ה-View ממומש בטבלה מאוכלסת מראש (<code>tbl_mk_issue_bill_votes</code>) עם אינדקס אשכול (Clustering) לפי <code>mk_slug, issue_slug</code> לשליפה מיידית.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">מודל מימוש:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">bill_issue</span>
+                  <span class="tech-pill">v_mk_issue_bill_votes</span>
+                  <span class="tech-pill">tbl_mk_issue_bill_votes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="step-detail-card">
+            <div class="step-header">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div class="step-num-badge">6</div>
+                <div class="step-title">שלב 6: שכבת ה-API והצגה בממשק המשתמש (FastAPI & React)</div>
+              </div>
+              <span class="code-tag">src/mk_tracking/ui_app/ & ui/</span>
+            </div>
+            <div class="step-grid">
+              <div>
+                <p style="color: var(--text-secondary);">
+                  הזרמת הנתונים אל הדפדפן וחוויית המשתמש:
+                </p>
+                <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
+                  <li>שרת <strong>FastAPI</strong> מספק קצוות API מאובטחים המבצעים שאילתות מותאמות מול BigQuery עם זיכרון מטמון TTL ל-30 דקות.</li>
+                  <li>אפליקציית <strong>React 19 + Vite</strong> מציגה לוח מפלגות דינמי, אפשרויות סינון חכמות, ומגירת פרופיל ח"כ הכוללת את סיכום ה-AI, קרוסלת ציוצים, וציר זמן של הצבעות חוקים.</li>
+                </ul>
+              </div>
+              <div>
+                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">רכיבי UI:</div>
+                <div class="tech-pill-list">
+                  <span class="tech-pill">PartyBoard.tsx</span>
+                  <span class="tech-pill">MKCard.tsx</span>
+                  <span class="tech-pill">ProfileDrawer.tsx</span>
+                  <span class="tech-pill">OpinionCarousel.tsx</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- What We Show The User (UI Presentation) Section -->
+    <div class="section" id="ui-presentation">
+      <div class="section-header">
+        <div class="section-title">🖥️ מה מציגים למשתמש בסוף (UI Presentation)</div>
+        <div class="section-subtitle">מבנה הרכיבים בממשק המשתמש, הנתונים המוצגים בכל מסך והמקור ממנו הם מגיעים</div>
+      </div>
+
+      <div class="ui-showcase-grid">
+
+        <!-- View A: Party Board & MK Cards -->
+        <div class="ui-card">
+          <div class="ui-card-header">
+            <span style="font-size: 1.5rem;">🎴</span>
+            <div class="ui-card-title">תצוגה א': לוח מפלגות וכרטיסי חברי כנסת</div>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            מסך הבית הראשי המאפשר סקירה מהירה של כל חברי הכנסת לפי מפלגות, גושים פוליטיים וכיסוי הנושאים:
+          </p>
+
+          <div class="mockup-container">
+            <div class="mockup-item">
+              <span class="mockup-label">תמונת פרופיל + שם מלא</span>
+              <span class="mockup-val">mk.photo_url / mk.full_name_he</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">שם מפלגה + מנדטים</span>
+              <span class="mockup-val">party.name_he / party_size</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">תג גוש (קואליציה / אופוזיציה)</span>
+              <span class="mockup-val">mk_role.role_type / party fallback</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">מטריצת כיסוי נושאים (7 אייקונים)</span>
+              <span class="mockup-val">mk_issue_summary.quality</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">סה"כ ציוצים במאגר לח"כ</span>
+              <span class="mockup-val">COUNT(social_post.id)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- View B: MK Profile Drawer & Issue Tabs -->
+        <div class="ui-card">
+          <div class="ui-card-header">
+            <span style="font-size: 1.5rem;">👤</span>
+            <div class="ui-card-title">תצוגה ב': מגירת פרופיל ח"כ וניתוח נושאים</div>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+            מגירת צד שנפתחת בלחיצה על ח"כ, המציגה את ניתוח ה-AI, הציוצים התומכים וההצבעות בפרלמנט:
+          </p>
+
+          <div class="mockup-container">
+            <div class="mockup-item">
+              <span class="mockup-label">תיוג איכות כיסוי + סולם מד עמדה</span>
+              <span class="mockup-val">mk_issue_summary.quality / rating</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">סיכום עמדה מנומק בעברית (AI)</span>
+              <span class="mockup-val">mk_issue_summary.summary_he</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">סייגים ומגבלות המידע</span>
+              <span class="mockup-val">mk_issue_summary.limitations</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">קרוסלת ציוצים תומכים (טקסט, תאריך, לייקים)</span>
+              <span class="mockup-val">social_post.* via supporting_post</span>
+            </div>
+            <div class="mockup-item">
+              <span class="mockup-label">לוח הצבעות חוקים ויוזמות חקיקה</span>
+              <span class="mockup-val">tbl_mk_issue_bill_votes</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Provenance Matrix Section -->
+    <div class="section" id="provenance">
+      <div class="section-header">
+        <div class="section-title">🔍 מטריצת מקורות המידע (Data Provenance & Traceability Matrix)</div>
+        <div class="section-subtitle">מיפוי מלא של כל פריט מוצג בממשק המשתמש, נתיב ה-API, הטבלה ב-BigQuery, ומקור הנתונים הראשוני</div>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="table-controls">
+        <input type="text" id="provenanceSearch" class="search-box" placeholder="🔎 חפש אלמנט, טבלה, או מקור..." oninput="filterTable()">
+        <div class="filter-btn-group">
+          <button class="filter-btn active" onclick="setFilter('all', this)">הכל</button>
+          <button class="filter-btn" onclick="setFilter('social', this)">💬 מה אמר (רשתות)</button>
+          <button class="filter-btn" onclick="setFilter('knesset', this)">🗳️ מה עשה (כנסת)</button>
+          <button class="filter-btn" onclick="setFilter('ai', this)">🤖 תוצרי AI</button>
+        </div>
+      </div>
+
+      <!-- Table Wrapper -->
+      <div class="table-wrapper">
+        <table id="provenanceTable">
+          <thead>
+            <tr>
+              <th>אלמנט מוצג ב-UI</th>
+              <th>נתיב API של FastAPI</th>
+              <th>טבלה / View ב-BigQuery</th>
+              <th>מודל / שלב עיבוד</th>
+              <th>מקור נתונים ראשוני</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <!-- Item 1 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>👤</span> שם חבר הכנסת ותמונה
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks</span></td>
+              <td><span class="table-chip">mk_tracking.mk</span></td>
+              <td>שאילתת בסיס SQL</td>
+              <td><span class="source-badge src-knesset">Open Knesset OData</span></td>
+            </tr>
+
+            <!-- Item 2 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>🏛️</span> מפלגה, גודל מפלגה וגוש
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks</span></td>
+              <td><span class="table-chip">party, mk_affiliation, mk_role</span></td>
+              <td>שיוך אקטיבי + Fallback מפלגתי</td>
+              <td><span class="source-badge src-knesset">Open Knesset OData</span></td>
+            </tr>
+
+            <!-- Item 3 -->
+            <tr data-cat="social">
+              <td>
+                <div class="ui-element-title">
+                  <span>🐦</span> ידית טוויטר וקישור לפרופיל
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks</span></td>
+              <td><span class="table-chip">mk_social_account</span></td>
+              <td>אימות חשבון אקטיבי</td>
+              <td><span class="source-badge src-twitter">X / Twitter API</span></td>
+            </tr>
+
+            <!-- Item 4 -->
+            <tr data-cat="ai">
+              <td>
+                <div class="ui-element-title">
+                  <span>📊</span> מטריצת כיסוי נושאים (7 אשכולות)
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks</span></td>
+              <td><span class="table-chip">mk_issue_summary</span></td>
+              <td>הערכת איכות ראיות (quality)</td>
+              <td><span class="source-badge src-gemini">Gemini Synthesis</span></td>
+            </tr>
+
+            <!-- Item 5 -->
+            <tr data-cat="ai">
+              <td>
+                <div class="ui-element-title">
+                  <span>📝</span> סיכום עמדה מנומק בעברית
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues</span></td>
+              <td><span class="table-chip">mk_issue_summary.summary_he</span></td>
+              <td><code>gemini-3.6-flash</code> עם פרומפט ביסוס קשיח</td>
+              <td><span class="source-badge src-gemini">Gemini 3.6 Flash</span></td>
+            </tr>
+
+            <!-- Item 6 -->
+            <tr data-cat="ai">
+              <td>
+                <div class="ui-element-title">
+                  <span>⚖️</span> מד עמדה ודירוג איכות
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues</span></td>
+              <td><span class="table-chip">mk_issue_summary.rating / quality</span></td>
+              <td>סיווג איכות וכיוון עמדה (-2 עד +2)</td>
+              <td><span class="source-badge src-gemini">Gemini Synthesis</span></td>
+            </tr>
+
+            <!-- Item 7 -->
+            <tr data-cat="ai">
+              <td>
+                <div class="ui-element-title">
+                  <span>⚠️</span> סייגים ומגבלות המידע
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues</span></td>
+              <td><span class="table-chip">mk_issue_summary.limitations</span></td>
+              <td>זיהוי חוסר מידע או עמימות ברטוריקה</td>
+              <td><span class="source-badge src-gemini">Gemini Synthesis</span></td>
+            </tr>
+
+            <!-- Item 8 -->
+            <tr data-cat="social">
+              <td>
+                <div class="ui-element-title">
+                  <span>💬</span> ציוצים תומכים בקרוסלה
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues</span></td>
+              <td><span class="table-chip">mk_issue_summary_supporting_post</span></td>
+              <td>קישור ציוצי מקור בטבלת צומת</td>
+              <td><span class="source-badge src-twitter">X / Twitter Posts</span></td>
+            </tr>
+
+            <!-- Item 9 -->
+            <tr data-cat="social">
+              <td>
+                <div class="ui-element-title">
+                  <span>📈</span> מדדי מעורבות (לייקים, ריטוויטים)
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/posts</span></td>
+              <td><span class="table-chip">social_post.engagement</span></td>
+              <td>שליפת נתוני JSON מוקלטים</td>
+              <td><span class="source-badge src-twitter">X / Twitter API</span></td>
+            </tr>
+
+            <!-- Item 10 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>📜</span> כותרת ותקציר הצעת חוק
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues/{issue}/votes</span></td>
+              <td><span class="table-chip">tbl_mk_issue_bill_votes.title</span></td>
+              <td>איגוד חוקים והצבעות ממומש</td>
+              <td><span class="source-badge src-knesset">Open Knesset / kns_bill</span></td>
+            </tr>
+
+            <!-- Item 11 -->
+            <tr data-cat="ai">
+              <td>
+                <div class="ui-element-title">
+                  <span>🏷️</span> שיוך הצעת חוק לנושא פוליטי
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues/{issue}/votes</span></td>
+              <td><span class="table-chip">bill_issue</span></td>
+              <td>סיווג סמנטי מבוסס <code>gemini-3.6-flash</code></td>
+              <td><span class="source-badge src-gemini">Gemini 3.6 Flash</span></td>
+            </tr>
+
+            <!-- Item 12 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>✍️</span> תפקיד בחוק (יוזם / שותף)
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues/{issue}/votes</span></td>
+              <td><span class="table-chip">bill_author.role</span></td>
+              <td>שיוך יוזמים מ-<code>kns_billinitiator</code></td>
+              <td><span class="source-badge src-knesset">Open Knesset API</span></td>
+            </tr>
+
+            <!-- Item 13 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>🗳️</span> היסטוריית הצבעות (בעד, נגד, נמנע)
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues/{issue}/votes</span></td>
+              <td><span class="table-chip">mk_vote + vote_event</span></td>
+              <td>מערך קריאות (1, 2, 3) והצבעות במליאה</td>
+              <td><span class="source-badge src-knesset">Open Knesset API</span></td>
+            </tr>
+
+            <!-- Item 14 -->
+            <tr data-cat="knesset">
+              <td>
+                <div class="ui-element-title">
+                  <span>🔗</span> קישור לפורטל הכנסת ולכנסת פתוחה
+                </div>
+              </td>
+              <td><span class="endpoint-chip">GET /api/mks/{key}/issues/{issue}/votes</span></td>
+              <td><span class="table-chip">bill.knesset_portal_url</span></td>
+              <td>בניית קישור דינמי לפי <code>knesset_bill_id</code></td>
+              <td><span class="source-badge src-knesset">Knesset Official Portal</span></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Schemas Section -->
+    <div class="section" id="schemas">
+      <div class="section-header">
+        <div class="section-title">🗄️ סכמת בסיס הנתונים המרכזית (BigQuery Schema v4)</div>
+        <div class="section-subtitle">מבנה הטבלאות הראשיות ב-Dataset <code>mk_tracking</code></div>
+      </div>
+
+      <div class="schema-grid">
+        
+        <!-- Schema 1 -->
+        <div class="schema-card">
+          <div class="schema-title">mk_tracking.social_post</div>
+          <div class="schema-desc">טבלת הציוצים והפוסטים ברשתות החברתיות (Day Partitioned & Clustered)</div>
+          <ul class="schema-cols">
+            <li><span class="col-name">id</span><span class="col-type">STRING (UUID)</span></li>
+            <li><span class="col-name">mk_id</span><span class="col-type">INT64 (FK)</span></li>
+            <li><span class="col-name">platform_post_id</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">text</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">posted_at</span><span class="col-type">TIMESTAMP</span></li>
+            <li><span class="col-name">engagement</span><span class="col-type">JSON</span></li>
+            <li><span class="col-name">embedding</span><span class="col-type">ARRAY&lt;FLOAT64&gt;</span></li>
+          </ul>
+        </div>
+
+        <!-- Schema 2 -->
+        <div class="schema-card">
+          <div class="schema-title">mk_tracking.post_issue</div>
+          <div class="schema-desc">שיוך ציוצים לנושאים פוליטיים עם ציון הסתברות</div>
+          <ul class="schema-cols">
+            <li><span class="col-name">post_id</span><span class="col-type">STRING (FK)</span></li>
+            <li><span class="col-name">issue_id</span><span class="col-type">INT64 (FK)</span></li>
+            <li><span class="col-name">confidence</span><span class="col-type">FLOAT64</span></li>
+            <li><span class="col-name">is_concrete_promise</span><span class="col-type">BOOL</span></li>
+            <li><span class="col-name">model_version</span><span class="col-type">STRING</span></li>
+          </ul>
+        </div>
+
+        <!-- Schema 3 -->
+        <div class="schema-card">
+          <div class="schema-title">mk_tracking.mk_issue_summary</div>
+          <div class="schema-desc">סיכומי עמדות ה-AI ברמת חבר כנסת ונושא</div>
+          <ul class="schema-cols">
+            <li><span class="col-name">id</span><span class="col-type">STRING (UUID)</span></li>
+            <li><span class="col-name">mk_id</span><span class="col-type">INT64 (FK)</span></li>
+            <li><span class="col-name">issue_id</span><span class="col-type">INT64 (FK)</span></li>
+            <li><span class="col-name">summary_he</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">rating</span><span class="col-type">INT64</span></li>
+            <li><span class="col-name">quality</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">limitations</span><span class="col-type">STRING</span></li>
+          </ul>
+        </div>
+
+        <!-- Schema 4 -->
+        <div class="schema-card">
+          <div class="schema-title">mk_tracking.tbl_mk_issue_bill_votes</div>
+          <div class="schema-desc">טבלת הצבעות וחוקים ממומשת לשליפה ב-UI מתחת ל-100ms</div>
+          <ul class="schema-cols">
+            <li><span class="col-name">mk_slug</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">issue_slug</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">knesset_bill_id</span><span class="col-type">INT64</span></li>
+            <li><span class="col-name">title</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">authorship_role</span><span class="col-type">STRING</span></li>
+            <li><span class="col-name">voting_events</span><span class="col-type">ARRAY&lt;STRUCT&gt;</span></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p><strong>MK Tracking System</strong> • Hasadna Hackathon Hack Project Architecture</p>
+    <p style="font-size: 0.8rem; color: var(--text-muted);">נוצר ועודכן ב-31 ביולי 2026 • מבוסס תשתית Google Cloud BigQuery & Vertex AI</p>
+  </footer>
+
+  <!-- JavaScript for Tabs & Interactive Filtering -->
+  <script>
+    function switchTab(index) {
+      const buttons = document.querySelectorAll('.tab-btn');
+      const contents = document.querySelectorAll('.pipeline-content');
+
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      contents.forEach((content, i) => {
+        if (i === index) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+    }
+
+    let currentCategory = 'all';
+
+    function setFilter(cat, btnElement) {
+      currentCategory = cat;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+      filterTable();
+    }
+
+    function filterTable() {
+      const search = document.getElementById('provenanceSearch').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#provenanceTable tbody tr');
+
+      rows.forEach(row => {
+        const cat = row.getAttribute('data-cat');
+        const text = row.textContent.toLowerCase();
+
+        const matchCat = (currentCategory === 'all' || cat === currentCategory);
+        const matchSearch = (!search || text.includes(search));
+
+        if (matchCat && matchSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

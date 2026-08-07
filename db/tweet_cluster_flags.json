@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "model_version": "gemini-embedding-2:kmeans-k30-rs42-n1:auto-garbage:v3",
+  "embedding_model": "gemini-embedding-2",
+  "summary_model": "gemini-2.5-flash",
+  "k": 30,
+  "random_state": 42,
+  "n_init": 1,
+  "garbage_cluster_ids": []
+}

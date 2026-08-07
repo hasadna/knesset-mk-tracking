@@ -1,0 +1,44 @@
+[project]
+name = "mk-tracking"
+version = "0.1.0"
+description = "Prepare and embed MK tweets and political subjects"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "The Public Knowledge Workshop" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "cachetools>=7.1.6",
+    "fastapi>=0.116,<1",
+    "google-cloud-bigquery>=3.42.2",
+    "google-genai>=2.15.0",
+    "numpy>=2.4.6",
+    "scikit-learn>=1.9.0",
+    "tqdm>=4.70,<5",
+    "uvicorn>=0.35,<1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "playwright>=1.54,<2",
+    "pytest>=8.2",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+mk-tracking = "mk_tracking.cli:main"
+mk-summary = "mk_tracking.summary_creation.cli:main"
+mk-work = "mk_tracking.ui_app:main"
+mkwork = "mk_tracking.ui_app:main"
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+extend-select = ["B", "I", "UP"]
+
+[build-system]
+requires = ["uv_build>=0.11.8,<0.12.0"]
+build-backend = "uv_build"

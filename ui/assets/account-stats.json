@@ -1,0 +1,62 @@
+{
+  "Ahmad_tibi": {
+    "politician": "אחמד טיבי",
+    "tweets": 82,
+    "file": "x_data_Ahmad_tibi_20260730_150956.json",
+    "fetched_at": "2026-07-30T12:09:56.883463+00:00"
+  },
+  "AvigdorLiberman": {
+    "politician": "אביגדור ליברמן",
+    "tweets": 98,
+    "file": "x_data_AvigdorLiberman_20260730_150953.json",
+    "fetched_at": "2026-07-30T12:09:53.518647+00:00"
+  },
+  "MansourAB": {
+    "politician": "מנסור עבאס",
+    "tweets": 0,
+    "file": "x_data_MansourAB_20260730_150951.json",
+    "fetched_at": "2026-07-30T12:09:51.463843+00:00"
+  },
+  "YairGolan1": {
+    "politician": "יאיר גולן",
+    "tweets": 91,
+    "file": "x_data_YairGolan1_20260730_150955.json",
+    "fetched_at": "2026-07-30T12:09:55.514717+00:00"
+  },
+  "itamarbengvir": {
+    "politician": "איתמר בן גביר",
+    "tweets": 96,
+    "file": "x_data_itamarbengvir_20260730_150948.json",
+    "fetched_at": "2026-07-30T12:09:48.606947+00:00"
+  },
+  "naftalibennett": {
+    "politician": "נפתלי בנט",
+    "tweets": 95,
+    "file": "x_data_naftalibennett_20260730_150952.json",
+    "fetched_at": "2026-07-30T12:09:52.512069+00:00"
+  },
+  "netanyahu": {
+    "politician": "בנימין נתניהו",
+    "tweets": 99,
+    "file": "x_data_netanyahu_20260730_150949.json",
+    "fetched_at": "2026-07-30T12:09:49.556648+00:00"
+  },
+  "regev_miri": {
+    "politician": "מירי רגב",
+    "tweets": 90,
+    "file": "x_data_regev_miri_20260730_150954.json",
+    "fetched_at": "2026-07-30T12:09:54.528233+00:00"
+  },
+  "rothmar": {
+    "politician": "שמחה רוטמן",
+    "tweets": 100,
+    "file": "x_data_rothmar_20260730_150950.json",
+    "fetched_at": "2026-07-30T12:09:50.597268+00:00"
+  },
+  "yairlapid": {
+    "politician": "יאיר לפיד",
+    "tweets": 99,
+    "file": "x_data_yairlapid_20260730_150947.json",
+    "fetched_at": "2026-07-30T12:09:47.515882+00:00"
+  }
+}

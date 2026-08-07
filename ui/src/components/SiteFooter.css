@@ -1,0 +1,76 @@
+.site-footer {
+  margin-top: 40px;
+  padding: 30px 20px;
+  background: linear-gradient(to bottom, transparent, var(--surface-2));
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: inherit;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.site-footer-content {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 800px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  position: relative;
+  padding: 4px 0;
+  transition: color 0.3s ease;
+}
+
+.footer-link svg {
+  stroke: var(--muted);
+  transition: stroke 0.3s ease, transform 0.3s ease;
+}
+
+/* Hover effects */
+.footer-link:hover, .footer-link:focus-visible {
+  color: var(--text);
+}
+
+.footer-link:hover svg, .footer-link:focus-visible svg {
+  stroke: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* Center-out expanding underline animation */
+.footer-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent);
+  transition: width 0.3s ease, left 0.3s ease;
+  border-radius: 2px;
+}
+
+.footer-link:hover::after, .footer-link:focus-visible::after {
+  width: 100%;
+  left: 0;
+}
+
+@media (max-width: 600px) {
+  .site-footer-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .footer-link {
+    align-self: center;
+  }
+}

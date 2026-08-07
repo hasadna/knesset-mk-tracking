@@ -1,0 +1,123 @@
+{
+  "version": 3,
+  "embedding_model": "gemini-embedding-2",
+  "issues": [
+    {
+      "slug": "war-peace",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "ניהול המלחמה בעזה, הפסקת אש ועסקת חטופים מול המשך הלחימה עד הכרעה."},
+        {"anchor_index": 2, "language": "he", "text": "הסדרה מדינית ודיפלומטיה אזורית מול הכרעה צבאית והפעלת כוח."},
+        {"anchor_index": 3, "language": "he", "text": "האיום האיראני, חיזבאללה בלבנון וחמאס — תגובה צבאית או מהלכים מדיניים."},
+        {"anchor_index": 4, "language": "he", "text": "מדיניות חוץ, היחסים עם ארצות הברית ומדינות ערב, הסכמי נורמליזציה והיום שאחרי המלחמה."},
+        {"anchor_index": 5, "language": "en", "text": "Ceasefire negotiations, a hostage deal, and diplomatic settlement versus continuing the war until total victory."},
+        {"anchor_index": 6, "language": "en", "text": "Regional security policy toward Iran, Hezbollah and Hamas — military force or diplomacy and alliances."},
+        {"anchor_index": 7, "language": "ar", "text": "وقف إطلاق النار وصفقة تبادل الأسرى والتسوية السياسية مقابل استمرار الحرب حتى الحسم."},
+        {"anchor_index": 8, "language": "ar", "text": "السياسة الإقليمية تجاه إيران وحزب الله وحماس — القوة العسكرية أو الدبلوماسية."}
+      ]
+    },
+    {
+      "slug": "oct7-accountability",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "הקמת ועדת חקירה ממלכתית לחקר מחדל 7 באוקטובר וקביעת אחריות."},
+        {"anchor_index": 2, "language": "he", "text": "אחריות הממשלה, הצבא והדרג המדיני לכשל ההתרעה וההגנה ב-7 באוקטובר."},
+        {"anchor_index": 3, "language": "he", "text": "התנגדות לוועדת חקירה ממלכתית, דחייתה עד סוף המלחמה או ערעור על הרכבה."},
+        {"anchor_index": 4, "language": "he", "text": "דרישת המשפחות השכולות ומשפחות החטופים לאמת, לאחריות אישית ולהתפטרויות בעקבות המחדל."},
+        {"anchor_index": 5, "language": "en", "text": "Establishing a state commission of inquiry into the October 7 failure and assigning responsibility."},
+        {"anchor_index": 6, "language": "en", "text": "Government and military accountability for the October 7 disaster, including resignations and personal responsibility."},
+        {"anchor_index": 7, "language": "ar", "text": "إقامة لجنة تحقيق رسمية في إخفاق السابع من أكتوبر وتحديد المسؤولية."},
+        {"anchor_index": 8, "language": "ar", "text": "مسؤولية الحكومة والجيش عن كارثة السابع من أكتوبر والمطالبة بالاستقالات."}
+      ]
+    },
+    {
+      "slug": "settlements",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "הרחבת התנחלויות, הקצאת תקציבים וכספים קואליציוניים לבנייה מעבר לקו הירוק."},
+        {"anchor_index": 2, "language": "he", "text": "אלימות מתנחלים ופרעות נגד פלסטינים — אכיפה, גינוי או הכחשה."},
+        {"anchor_index": 3, "language": "he", "text": "סיפוח יהודה ושומרון, הסדרת מאחזים ומדיניות השטחים."},
+        {"anchor_index": 4, "language": "he", "text": "אכיפה בלתי שוויונית של החוק כלפי מתנחלים לעומת פלסטינים ואזרחים ערבים בשטחים."},
+        {"anchor_index": 5, "language": "en", "text": "Settlement expansion, budgets and coalition funds directed beyond the Green Line, and annexation policy."},
+        {"anchor_index": 6, "language": "en", "text": "Settler violence against Palestinians and the asymmetry of law enforcement in the West Bank."},
+        {"anchor_index": 7, "language": "ar", "text": "توسيع المستوطنات وتمويلها وسياسة الضم في الضفة الغربية."},
+        {"anchor_index": 8, "language": "ar", "text": "عنف المستوطنين ضد الفلسطينيين والتمييز في تطبيق القانون في الضفة الغربية."}
+      ]
+    },
+    {
+      "slug": "policing-crime",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "הפשיעה בחברה הערבית, ארגוני פשיעה ונשק בלתי חוקי — תוכניות ממשלתיות ואכיפה."},
+        {"anchor_index": 2, "language": "he", "text": "סמכויות המשטרה, התנהלות השוטרים והפיקוח האזרחי עליהם."},
+        {"anchor_index": 3, "language": "he", "text": "ביטחון אישי, אלימות ורצח — דרישה למיגור הפשיעה ולהשבת המשילות."},
+        {"anchor_index": 4, "language": "he", "text": "שוויון אזרחי לחברה הערבית: תקציבים, ייצוג, שילוב ותשתיות ביישובים הערביים."},
+        {"anchor_index": 5, "language": "en", "text": "Organized crime and illegal weapons in Arab communities, police powers and government enforcement plans."},
+        {"anchor_index": 6, "language": "en", "text": "Civic equality for Arab citizens of Israel: budgets, representation and integration."},
+        {"anchor_index": 7, "language": "ar", "text": "الجريمة المنظمة والسلاح غير المرخص في المجتمع العربي وخطط الحكومة لمكافحتها."},
+        {"anchor_index": 8, "language": "ar", "text": "المساواة المدنية للمواطنين العرب: الميزانيات والتمثيل والاندماج."}
+      ]
+    },
+    {
+      "slug": "haredi-conscription",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "חוק הגיוס, גיוס בני ישיבות לצה\"ל ופטור תלמידי ישיבות משירות."},
+        {"anchor_index": 2, "language": "he", "text": "שוויון בנטל — שירות צבאי או אזרחי לכולם מול תורתו אומנותו."},
+        {"anchor_index": 3, "language": "he", "text": "סנקציות על משתמטים, שלילת קצבאות והטבות המותנות בשירות."},
+        {"anchor_index": 4, "language": "he", "text": "העומס על משרתי המילואים והסדירים לעומת מי שאינו מתגייס."},
+        {"anchor_index": 5, "language": "en", "text": "The draft law, conscription of yeshiva students, and exemptions from military service for Haredim."},
+        {"anchor_index": 6, "language": "en", "text": "Equality of the service burden — sanctions, incentives, and benefits conditioned on service."},
+        {"anchor_index": 7, "language": "ar", "text": "قانون التجنيد وتجنيد طلاب المدارس الدينية اليهودية والإعفاء من الخدمة العسكرية."},
+        {"anchor_index": 8, "language": "ar", "text": "المساواة في عبء الخدمة العسكرية والعقوبات على المتهربين من التجنيد."}
+      ]
+    },
+    {
+      "slug": "judiciary",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "הרפורמה המשפטית, פסקת ההתגברות וצמצום סמכויות בג\"ץ."},
+        {"anchor_index": 2, "language": "he", "text": "הרכב הוועדה לבחירת שופטים והשליטה הפוליטית במינוי שופטים."},
+        {"anchor_index": 3, "language": "he", "text": "מעמד היועצת המשפטית לממשלה, הדחתה או פיטוריה, ועצמאות הייעוץ המשפטי."},
+        {"anchor_index": 4, "language": "he", "text": "ציות לפסיקות בג\"ץ, משבר חוקתי ושמירה על הפרדת רשויות ואיזונים."},
+        {"anchor_index": 5, "language": "en", "text": "Judicial reform, curbing the Supreme Court's powers, and political control over judge selection."},
+        {"anchor_index": 6, "language": "en", "text": "The attorney general's independence, compliance with court rulings, and the separation of powers."},
+        {"anchor_index": 7, "language": "ar", "text": "الإصلاح القضائي وتقليص صلاحيات المحكمة العليا والسيطرة السياسية على تعيين القضاة."},
+        {"anchor_index": 8, "language": "ar", "text": "استقلال المستشارة القضائية للحكومة والامتثال لقرارات المحكمة وفصل السلطات."}
+      ]
+    },
+    {
+      "slug": "discourse-quality",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "שיח מכבד וענייני בין יריבים פוליטיים, דיון בעובדות ובמדיניות."},
+        {"anchor_index": 2, "language": "he", "text": "הסתה, דה-לגיטימציה והשוואת יריבים פוליטיים לבוגדים או לאויבים."},
+        {"anchor_index": 3, "language": "he", "text": "לעג, השפלה וכינויי גנאי אישיים בשיח הפוליטי ברשתות החברתיות."},
+        {"anchor_index": 4, "language": "he", "text": "קריאה להנמכת הלהבות, לאחדות ולשיח ממלכתי בין המחנות."},
+        {"anchor_index": 5, "language": "en", "text": "Respectful, substantive political debate focused on facts and policy rather than personal attacks."},
+        {"anchor_index": 6, "language": "en", "text": "Incitement, mockery, and degrading personal attacks against political rivals."},
+        {"anchor_index": 7, "language": "ar", "text": "خطاب سياسي محترم وموضوعي يركز على الحقائق والسياسات بدل الهجمات الشخصية."},
+        {"anchor_index": 8, "language": "ar", "text": "التحريض والسخرية والإهانات الشخصية ضد الخصوم السياسيين."}
+      ]
+    },
+    {
+      "slug": "economy-cost-of-living",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "יוקר המחיה, מחירי המזון והדיור והכבדת הנטל על משקי הבית."},
+        {"anchor_index": 2, "language": "he", "text": "מיסוי, מע\"מ ותקציב המדינה — העלאות מסים, קיצוצים וסדרי עדיפויות."},
+        {"anchor_index": 3, "language": "he", "text": "מדינת רווחה, קצבאות וסובסידיות מול שוק חופשי, תחרות והפרטה."},
+        {"anchor_index": 4, "language": "he", "text": "רפורמות כלכליות מבניות, רגולציה, פתיחת יבוא ותחרות להורדת מחירים."},
+        {"anchor_index": 5, "language": "en", "text": "The cost of living, food and housing prices, taxation and the state budget."},
+        {"anchor_index": 6, "language": "en", "text": "Welfare state and subsidies versus free-market competition, deregulation and privatization."},
+        {"anchor_index": 7, "language": "ar", "text": "غلاء المعيشة وأسعار الغذاء والسكن والضرائب وميزانية الدولة."},
+        {"anchor_index": 8, "language": "ar", "text": "دولة الرفاه والمخصصات مقابل السوق الحرة والمنافسة والخصخصة."}
+      ]
+    },
+    {
+      "slug": "infrastructure-services",
+      "anchors": [
+        {"anchor_index": 1, "language": "he", "text": "משבר הדיור, תכנון ובנייה והוזלת מחירי הדירות."},
+        {"anchor_index": 2, "language": "he", "text": "תחבורה ציבורית, כבישים, רכבות ופקקים — השקעה בתשתיות תחבורה."},
+        {"anchor_index": 3, "language": "he", "text": "פרויקטי תשתית לאומיים בתחומי הבינה המלאכותית, הדיגיטל ומאגרי המידע הלאומיים."},
+        {"anchor_index": 4, "language": "he", "text": "מערכת הבריאות, החינוך ושירותי הרווחה — תקצוב, כוח אדם וזמינות השירותים."},
+        {"anchor_index": 5, "language": "en", "text": "The housing crisis, planning and construction, public transportation and road infrastructure investment."},
+        {"anchor_index": 6, "language": "en", "text": "National AI and digital infrastructure projects, and the funding of health, education and welfare services."},
+        {"anchor_index": 7, "language": "ar", "text": "أزمة السكن والتخطيط والبناء والاستثمار في المواصلات العامة والطرق."},
+        {"anchor_index": 8, "language": "ar", "text": "مشاريع البنية التحتية الرقمية والذكاء الاصطناعي وتمويل خدمات الصحة والتعليم والرفاه."}
+      ]
+    }
+  ]
+}

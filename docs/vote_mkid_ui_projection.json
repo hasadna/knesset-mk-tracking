@@ -1,0 +1,11 @@
+{
+  "existing_mapped_vote_events": 491,
+  "corrected_source_results_on_mapped_events": 43618,
+  "corrected_vote_issue_associations": 43618,
+  "corrected_unique_mk_event_issue": 43618,
+  "corrected_deduplicated_titles": 965,
+  "corrected_ui_slots": 965,
+  "corrected_ui_mks": 119,
+  "tali_source_results_on_mapped_events": 350,
+  "tali_ui_slots": 8
+}
