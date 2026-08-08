@@ -3386,91 +3386,21 @@ html[data-theme="dark"] .vote-decision-badge.against {
   margin-inline: 12px;
 }
 
-.party-score-axis-wrapper {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(110px, 150px) 1fr minmax(110px, 150px);
-  align-items: center;
-  gap: 16px;
-  margin-top: 14px;
-}
-
-.party-axis-bg-connector {
-  position: absolute;
-  top: 50%;
-  left: -28px;
-  right: -28px;
-  height: 18px;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.party-axis-bg-line {
-  flex: 1;
-  height: 6px;
-  background: linear-gradient(
-    90deg,
-    hsl(235, 70%, 50%) 0%,
-    hsl(205, 70%, 47%) 50%,
-    hsl(175, 70%, 44%) 100%
-  );
-  opacity: 0.85;
-  border-radius: 999px;
-  margin-inline: -3px;
-}
-
-.party-axis-bg-arrow-left,
-.party-axis-bg-arrow-right {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.party-axis-flank-text-label {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.party-axis-flank-text-label.is-right {
-  grid-column: 1;
-  justify-self: center;
-  text-align: center;
-}
-
-.party-axis-flank-text-label.is-left {
-  grid-column: 3;
-  justify-self: center;
-  text-align: center;
-}
-
-.party-axis-flank-text {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.3;
-  text-align: center;
-}
-
+/* The plot is one box with a tinted gutter at each end carrying its pole
+   wording. --axis-inset = gutter + half of the widest marker, so the track
+   starts clear of the text and a marker at 1.0 or 5.0 can never sit on it. */
 .party-axis-graph-box {
-  grid-column: 2;
+  /* Gutter scales with the plot; the marker cap scales with text size (rem), so
+     the inset stays >= half a marker at any viewport or user font size. */
+  --axis-gutter: clamp(5rem, 11%, 7rem);
+  --axis-marker-max: 8.25rem;
+  --axis-inset: calc(var(--axis-gutter) + (var(--axis-marker-max) / 2) + 0.5rem);
+  --axis-tint-low: hsla(235, 70%, 50%, 0.15);
+  --axis-tint-high: hsla(175, 70%, 44%, 0.17);
+
   position: relative;
-  z-index: 1;
   width: 100%;
+  margin-top: 14px;
   padding: 12px 0;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -3480,12 +3410,46 @@ html[data-theme="dark"] .vote-decision-badge.against {
   flex-direction: column;
   gap: 6px;
   overflow: hidden;
+  /* Room for the tallest wrapped pole label, so a one-row chart never clips it. */
+  min-height: 7.5rem;
+}
+
+html[data-theme="dark"] .party-axis-graph-box {
+  --axis-tint-low: hsla(235, 70%, 60%, 0.2);
+  --axis-tint-high: hsla(175, 70%, 55%, 0.2);
+}
+
+.party-axis-gutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  width: var(--axis-gutter);
+  padding: 0.625rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.party-axis-gutter.is-low {
+  right: 0;
+  background: linear-gradient(to left, var(--axis-tint-low), transparent);
+}
+
+.party-axis-gutter.is-high {
+  left: 0;
+  text-align: start;
+  background: linear-gradient(to right, var(--axis-tint-high), transparent);
 }
 
 .party-row-ticks-header {
   position: relative;
   width: 100%;
-  height: 22px;
+  height: 24px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
 }
@@ -3493,11 +3457,10 @@ html[data-theme="dark"] .vote-decision-badge.against {
 .party-row-ticks-inner,
 .party-score-row-inner {
   position: relative;
-  width: calc(100% - 130px);
-  margin-inline: 65px;
+  display: block;
+  width: calc(100% - (2 * var(--axis-inset)));
+  margin-inline: var(--axis-inset);
   height: 100%;
-  display: flex;
-  align-items: center;
 }
 
 .party-row-header-tick {
@@ -3509,7 +3472,12 @@ html[data-theme="dark"] .vote-decision-badge.against {
   justify-content: center;
   width: 24px;
   height: 24px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
   font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
@@ -3518,10 +3486,38 @@ html[data-theme="dark"] .vote-decision-badge.against {
   transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.party-row-header-tick:hover {
+.party-row-header-tick:hover,
+.party-row-header-tick:focus-visible {
   background: var(--surface-2, rgba(0, 0, 0, 0.08));
   transform: translate(50%, -50%) scale(1.15);
 }
+
+/* Gridlines drop through every row, so a score is readable without a hover. */
+.party-axis-gridlines {
+  position: absolute;
+  inset: 0;
+  margin-inline: var(--axis-inset);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.party-axis-gridlines i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  /* Centre the line on its value, like the ticks and markers — anchoring by the
+     right edge alone leaves it half its own width off. */
+  transform: translateX(50%);
+  width: 1px;
+  background: var(--border);
+  opacity: 0.45;
+}
+
+.party-axis-gridlines i.is-mid {
+  opacity: 0.9;
+}
+
 
 .party-score-tick-popover {
   position: absolute;
@@ -3557,41 +3553,78 @@ html[data-theme="dark"] .vote-decision-badge.against {
 }
 
 .party-rows-list {
+  position: relative;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
   margin-top: 4px;
 }
 
-.party-axis-graph-box .party-score-row {
+.party-axis-poles-compact {
+  display: none;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 8px 12px 0;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.3;
+}
+
+.party-axis-poles-compact span {
+  max-width: 46%;
+}
+
+.party-axis-poles-compact span:last-child {
+  text-align: end;
+}
+
+/* The badge is the trigger; the explanation lives in the IssueInfoButton
+   popover, matching every other AI badge in the app. */
+.party-score-footnote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 2px 0;
+}
+
+.party-score-row {
   position: relative;
+  z-index: 1;
+  display: block;
   width: 100%;
   height: 28px;
+  padding: 0;
   border: none;
   border-radius: 6px;
   background: transparent;
+  font-family: inherit;
+  text-align: start;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
-.party-axis-graph-box .party-score-row:hover {
+/* The highlight lives on the track, not the row: a full-width band would paint
+   straight over the pole labels sitting in the gutters. */
+.party-score-row-inner {
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.party-score-row:hover .party-score-row-inner,
+.party-score-row:focus-visible .party-score-row-inner {
   background: var(--surface-2, rgba(0, 0, 0, 0.04));
 }
 
-.party-axis-graph-box .party-score-row.is-selected {
+.party-score-row.is-selected .party-score-row-inner {
   background: var(--surface-2, rgba(49, 95, 155, 0.08));
 }
 
-.party-axis-graph-box .party-score-row.is-dimmed {
+.party-score-row.is-dimmed {
   opacity: 0.35;
-}
-
-.party-score-row-line {
-  width: 100%;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--border);
-  opacity: 0.6;
 }
 
 .party-score-row-marker-pill {
@@ -3601,6 +3634,7 @@ html[data-theme="dark"] .vote-decision-badge.against {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  max-width: var(--axis-marker-max);
   padding: 3px 10px;
   border-radius: 999px;
   color: #ffffff;
@@ -3610,97 +3644,30 @@ html[data-theme="dark"] .vote-decision-badge.against {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   z-index: 2;
-  cursor: pointer;
+}
+
+.party-score-pill-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
 }
 
 .party-score-pill-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.party-score-row:hover .party-score-row-marker-pill {
-  transform: translate(50%, -50%) scale(1.1);
+.party-score-row:hover .party-score-row-marker-pill,
+.party-score-row:focus-visible .party-score-row-marker-pill {
+  transform: translate(50%, -50%) scale(1.08);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   z-index: 5;
 }
 
-.party-score-row {
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.party-score-row:hover,
-.party-score-row:focus-visible {
-  background: var(--surface-2, rgba(0, 0, 0, 0.04));
-}
-
-.party-score-row.is-selected {
-  background: var(--surface-2, rgba(49, 95, 155, 0.08));
-}
-
-.party-score-row.is-dimmed {
-  opacity: 0.35;
-}
-
-.party-score-row-label {
-  grid-column: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.party-score-row-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.party-score-row-name {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.party-score-row-track-container {
-  position: relative;
-  grid-column: 2;
-  width: 100%;
-  height: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.party-score-row-line {
-  width: 100%;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--border);
-  opacity: 0.6;
-}
-
-.party-score-row-marker-dot {
-  position: absolute;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--surface);
-  border-radius: 50%;
-  transform: translate(50%, -50%);
-  transition: transform 0.15s ease;
-  z-index: 2;
-}
-
-.party-score-row:hover .party-score-row-marker-dot {
-  transform: translate(50%, -50%) scale(1.5);
+.party-score-row.is-selected .party-score-row-marker-pill {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 
 .party-score-label-badge.is-compact {
@@ -3862,6 +3829,24 @@ html[data-theme="dark"] .party-score-badge-name {
   color: var(--text);
   font-weight: 800;
 }
+/* Both popovers referenced these animations without ever defining them. */
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes tickPopoverFadeIn {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .party-score-tooltip,
+  .party-score-tick-popover {
+    animation: none;
+  }
+}
+
 .party-score-tooltip {
   position: absolute;
   z-index: 100;
@@ -3916,15 +3901,19 @@ html[data-theme="dark"] .party-score-badge-name {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
   padding: 5px 8px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: var(--surface-hover, rgba(0, 0, 0, 0.03));
+  font-family: inherit;
+  text-align: start;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.party-score-member-item:hover {
+.party-score-member-item:hover,
+.party-score-member-item:focus-visible {
   border-color: var(--accent);
   background: var(--accent-light, rgba(49, 95, 155, 0.1));
 }
@@ -3933,14 +3922,25 @@ html[data-theme="dark"] .party-score-badge-name {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .party-score-member-avatar {
   width: 24px;
   height: 24px;
+  flex: 0 0 24px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--border);
+}
+
+.party-score-member-avatar.is-initial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .party-score-member-name {
@@ -3973,9 +3973,23 @@ html[data-theme="dark"] .party-score-badge-name {
   opacity: 0.9;
 }
 
-@media (max-width: 700px) {
-  .party-score-panel { padding-inline: 16px; }
-  .party-score-axis { margin-inline: 8px; }
-  .party-score-marker-btn { min-width: 112px; font-size: 0.68rem; }
-  .party-score-name { max-width: 88px; }
+/* Below this the gutters get too narrow for the pole wording (it wraps to five
+   lines), so the poles drop to an inline strip and the track takes the width. */
+@media (max-width: 56rem) {
+  .party-score-panel { padding-inline: 1rem; }
+
+  .party-axis-graph-box {
+    --axis-gutter: 0rem;
+    --axis-marker-max: 6rem;
+    min-height: 0;
+    background:
+      linear-gradient(to left, var(--axis-tint-low), transparent 26%),
+      linear-gradient(to right, var(--axis-tint-high), transparent 26%),
+      var(--surface);
+  }
+  .party-axis-gutter { display: none; }
+  .party-axis-poles-compact { display: flex; }
+  .party-score-row-marker-pill { font-size: 0.66rem; padding: 0.19rem 0.44rem; }
+  .party-row-header-tick { font-size: 0.72rem; width: 1.25rem; height: 1.25rem; }
+  .party-score-tooltip { width: min(17.5rem, calc(100vw - 3rem)); }
 }

@@ -1,5 +1,6 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { MKMember, Topic } from '../types';
+import { IssueInfoButton } from './IssueInfoButton';
 
 interface PartyScoreAxisProps {
   members: MKMember[];
@@ -16,15 +17,29 @@ interface MemberRating {
   rating: number;
 }
 
+type Popover =
+  | { kind: 'party'; party: string }
+  | { kind: 'tick'; tick: number; meaning: string };
+
 const SCORE_MIN = 1;
 const SCORE_MAX = 5;
+const TICKS = [1, 2, 3, 4, 5];
+const CLOSE_DELAY_MS = 150;
+const POPOVER_GAP = 8;
+const PANEL_EDGE = 12;
 
 function getScoreColor(score: number): string {
-  // Map score [1..5] to an abstract, non-judgmental spectrum (Deep Indigo -> Slate -> Cyan Teal)
+  // Map score [1..5] to an abstract, non-judgmental spectrum (Deep Indigo -> Slate -> Cyan Teal).
+  // Lightness runs 50% -> 28% so white marker text clears 4.5:1 across the whole ramp
+  // (worst case 4.77:1 at score 4; the old 50% -> 44% bottomed out at 2.30:1).
   const normalized = Math.max(0, Math.min(1, (score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)));
   const hue = 235 - normalized * 60;
-  const lightness = 50 - normalized * 6;
+  const lightness = 50 - normalized * 22;
   return `hsl(${hue.toFixed(0)}, 70%, ${lightness.toFixed(0)}%)`;
+}
+
+function scoreToPercent(score: number): number {
+  return ((score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * 100;
 }
 
 function getTruncatedPartyName(name: string): string {
@@ -47,69 +62,101 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
   onSelectMember,
   imageFor,
 }) => {
-  const [activeParty, setActiveParty] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
-
-  const [activeTick, setActiveTick] = useState<{ tick: number; meaning: string } | null>(null);
-  const [tickTooltipPos, setTickTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const [popover, setPopover] = useState<Popover | null>(null);
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLElement | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const clearCloseTimer = () => {
+  const clearCloseTimer = useCallback(() => {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
     }
-  };
+  }, []);
 
-  const handleMouseEnterMarker = (partyName: string, event: React.MouseEvent<HTMLElement>) => {
+  const closePopover = useCallback(() => {
     clearCloseTimer();
-    setActiveTick(null);
-    setTickTooltipPos(null);
-    setActiveParty(partyName);
-    const rect = event.currentTarget.getBoundingClientRect();
-    const panelRect = panelRef.current?.getBoundingClientRect();
-    if (panelRect) {
-      const centerX = rect.left + rect.width / 2 - panelRect.left;
-      const tooltipX = Math.max(12, Math.min(centerX - 140, panelRect.width - 292));
-      const tooltipY = rect.bottom - panelRect.top + 8;
+    anchorRef.current = null;
+    setPopover(null);
+    setPopoverPos(null);
+  }, [clearCloseTimer]);
 
-      setTooltipPos({
-        x: tooltipX,
-        y: tooltipY,
+  // Deferred close, so the pointer can travel from the anchor into the popover.
+  const scheduleClose = useCallback(() => {
+    clearCloseTimer();
+    closeTimerRef.current = setTimeout(closePopover, CLOSE_DELAY_MS);
+  }, [clearCloseTimer, closePopover]);
+
+  const openPopover = useCallback(
+    (next: Popover, anchor: HTMLElement) => {
+      clearCloseTimer();
+      anchorRef.current = anchor;
+      setPopover((current) => {
+        // Re-opening the same target must not reset its measured position.
+        if (
+          current &&
+          current.kind === next.kind &&
+          ((current.kind === 'party' && next.kind === 'party' && current.party === next.party) ||
+            (current.kind === 'tick' && next.kind === 'tick' && current.tick === next.tick))
+        ) {
+          return current;
+        }
+        setPopoverPos(null);
+        return next;
       });
-    }
-  };
+    },
+    [clearCloseTimer]
+  );
 
-  const handleMouseLeaveMarker = () => {
-    clearCloseTimer();
-    closeTimerRef.current = setTimeout(() => {
-      setActiveParty(null);
-      setTooltipPos(null);
-      setActiveTick(null);
-      setTickTooltipPos(null);
-    }, 150);
-  };
+  useEffect(() => clearCloseTimer, [clearCloseTimer]);
 
-  const handleMouseEnterTick = (tick: number, meaning: string, event: React.MouseEvent<HTMLElement>) => {
-    clearCloseTimer();
-    setActiveParty(null);
-    setTooltipPos(null);
-    setActiveTick({ tick, meaning });
-    const rect = event.currentTarget.getBoundingClientRect();
-    const panelRect = panelRef.current?.getBoundingClientRect();
-    if (panelRect) {
-      const centerX = rect.left + rect.width / 2 - panelRect.left;
-      const tooltipX = Math.max(12, Math.min(centerX - 100, panelRect.width - 220));
-      const tooltipY = rect.top - panelRect.top - 42;
+  // A row spans the whole plot, so anchor its popover to the marker instead.
+  const markerOf = (row: HTMLElement): HTMLElement =>
+    row.querySelector<HTMLElement>('.party-score-row-marker-pill') ?? row;
 
-      setTickTooltipPos({
-        x: tooltipX,
-        y: tooltipY,
-      });
-    }
-  };
+  // Measure the rendered popover, then place it inside the panel: centred on its
+  // anchor, flipped above when it would overflow the bottom, clamped on both axes.
+  useLayoutEffect(() => {
+    if (!popover || popoverPos) return;
+    const anchor = anchorRef.current;
+    const panel = panelRef.current;
+    const pop = popoverRef.current;
+    if (!anchor || !panel || !pop) return;
+
+    const anchorRect = anchor.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+    const popRect = pop.getBoundingClientRect();
+
+    const centerX = anchorRect.left + anchorRect.width / 2 - panelRect.left;
+    const maxX = Math.max(PANEL_EDGE, panelRect.width - popRect.width - PANEL_EDGE);
+    const x = Math.min(Math.max(centerX - popRect.width / 2, PANEL_EDGE), maxX);
+
+    // Flip on the viewport, not the panel: a popover that fits the panel can
+    // still open below the fold.
+    const below = anchorRect.bottom - panelRect.top + POPOVER_GAP;
+    const above = anchorRect.top - panelRect.top - popRect.height - POPOVER_GAP;
+    const roomBelow = window.innerHeight - anchorRect.bottom - POPOVER_GAP - PANEL_EDGE;
+    const roomAbove = anchorRect.top - POPOVER_GAP - PANEL_EDGE;
+    const placeBelow = popRect.height <= roomBelow || roomAbove < popRect.height;
+
+    const minY = PANEL_EDGE - panelRect.top;
+    const maxY = window.innerHeight - panelRect.top - popRect.height - PANEL_EDGE;
+    const y = Math.min(Math.max(placeBelow ? below : above, minY), Math.max(minY, maxY));
+
+    setPopoverPos({ x, y });
+  }, [popover, popoverPos]);
+
+  useEffect(() => {
+    if (!popover) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closePopover();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [popover, closePopover]);
 
   const partyScores = useMemo(() => {
     const grouped = new Map<string, MemberRating[]>();
@@ -144,9 +191,9 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
   }, [members, partyColors, topic.id]);
 
   const activePartyData = useMemo(() => {
-    if (!activeParty) return null;
-    return partyScores.find((p) => p.party === activeParty) || null;
-  }, [activeParty, partyScores]);
+    if (popover?.kind !== 'party') return null;
+    return partyScores.find((p) => p.party === popover.party) || null;
+  }, [popover, partyScores]);
 
   if (!partyScores.length) return null;
 
@@ -156,11 +203,7 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
 
   const handleMarkerClick = (partyName: string) => {
     if (!onPartySelect) return;
-    if (selectedParty === partyName) {
-      onPartySelect('all');
-    } else {
-      onPartySelect(partyName);
-    }
+    onPartySelect(selectedParty === partyName ? 'all' : partyName);
   };
 
   return (
@@ -175,13 +218,6 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
             מפת עמדות המפלגות: {topic.title}
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span
-              className="party-score-ai-disclaimer"
-              title="ניתוח הדירוג נוצר באמצעות בינה מלאכותית ועלול להכיל טעויות"
-            >
-              <span className="ai-badge-chip">AI</span>
-              <span>עלול לטעות</span>
-            </span>
             {selectedParty !== 'all' && onPartySelect && (
               <button
                 type="button"
@@ -195,155 +231,146 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
             )}
           </div>
         </div>
-        <p>ממוצע ציוני חברי הכנסת בסולם 1 עד 5. שורות המפלגות ממוינות לפי ציון; רחף לצפייה בפירוט.</p>
       </header>
 
-      {/* Flanking Side Labels Layout: Label of 1 (Right) | GRAPH BOX | Label of 5 (Left) */}
+      {/* Single-column plot. Each end is a tinted gutter carrying its pole
+          wording; the track is inset past them so a marker at 1.0 or 5.0 never
+          lands on the text. */}
       <div
-        className="party-score-axis-wrapper"
+        className="party-axis-graph-box"
         role="region"
         aria-label={`ציוני המפלגות בנושא ${topic.title}, בסולם 1 עד 5`}
-        onMouseLeave={handleMouseLeaveMarker}
+        onMouseLeave={scheduleClose}
       >
-        {/* Background Connecting Axis Line Spanning Full Width (Reversed & Broader) */}
-        <div className="party-axis-bg-connector" aria-hidden="true">
-          <div className="party-axis-bg-arrow-left">
-            <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
-              <path d="M4 2L12 9L4 16" stroke="hsl(235, 70%, 50%)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="party-axis-bg-line" />
-          <div className="party-axis-bg-arrow-right">
-            <svg width="16" height="18" viewBox="0 0 16 18" fill="none">
-              <path d="M12 2L4 9L12 16" stroke="hsl(175, 70%, 44%)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+        <div className="party-axis-gutter is-low">
+          <span>{lowLabel}</span>
+        </div>
+        <div className="party-axis-gutter is-high">
+          <span>{highLabel}</span>
         </div>
 
-        {/* Physical Right: Label of 1 (RTL Start) */}
-        <div
-          className="party-axis-flank-text-label is-right"
-          title={`דרגה 1: ${lowLabel}`}
-        >
-          <span className="party-axis-flank-text">{lowLabel}</span>
-        </div>
-
-        {/* Physical Center: GRAPH BOX */}
-        <div className="party-axis-graph-box">
-          {/* Ticks 1..5 Header */}
-          <div className="party-row-ticks-header">
-            <div className="party-row-ticks-inner">
-              {[1, 2, 3, 4, 5].map((tick) => {
-                const meaning = scale[String(tick)] || `דרגה ${tick} מתוך 5`;
-                return (
-                  <span
-                    key={tick}
-                    className="party-row-header-tick"
-                    style={{
-                      right: `${((tick - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * 100}%`,
-                      color: getScoreColor(tick),
-                    }}
-                    onMouseEnter={(e) => handleMouseEnterTick(tick, meaning, e)}
-                    onMouseMove={(e) => handleMouseEnterTick(tick, meaning, e)}
-                    onMouseLeave={handleMouseLeaveMarker}
-                    title={`דרגה ${tick}: ${meaning}`}
-                    aria-label={`דרגה ${tick}: ${meaning}`}
-                  >
-                    {tick}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Per-Party Horizontal Lines */}
-          <div className="party-rows-list">
-            {partyScores.map((item) => {
-              const isSelected = selectedParty === item.party;
-              const isDimmed = selectedParty !== 'all' && !isSelected;
-              const xPct = ((item.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * 100;
-              const truncatedName = getTruncatedPartyName(item.party);
-
+        <div className="party-row-ticks-header">
+          <div className="party-row-ticks-inner">
+            {TICKS.map((tick) => {
+              const meaning = scale[String(tick)] || `דרגה ${tick} מתוך 5`;
               return (
-                <div
-                  key={item.party}
-                  className={`party-score-row ${isSelected ? 'is-selected' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
-                  onClick={() => handleMarkerClick(item.party)}
-                  onMouseEnter={(e) => handleMouseEnterMarker(item.party, e)}
-                  onMouseMove={(e) => handleMouseEnterMarker(item.party, e)}
-                  onMouseLeave={handleMouseLeaveMarker}
-                  aria-label={`${item.party}: ציון ממוצע ${item.score.toFixed(1)}`}
+                <button
+                  key={tick}
+                  type="button"
+                  className="party-row-header-tick"
+                  style={{ right: `${scoreToPercent(tick)}%` }}
+                  onMouseEnter={(e) => openPopover({ kind: 'tick', tick, meaning }, e.currentTarget)}
+                  onMouseLeave={scheduleClose}
+                  onFocus={(e) => openPopover({ kind: 'tick', tick, meaning }, e.currentTarget)}
+                  onBlur={scheduleClose}
+                  aria-label={`דרגה ${tick}: ${meaning}`}
                 >
-                  <div className="party-score-row-inner">
-                    <div className="party-score-row-line" />
-                    <div
-                      className="party-score-row-marker-pill"
-                      style={{
-                        right: `${xPct}%`,
-                        backgroundColor: item.color,
-                      }}
-                      title={`${item.party}: ${item.score.toFixed(1)}`}
-                    >
-                      <span className="party-score-pill-name">{truncatedName}</span>
-                    </div>
-                  </div>
-                </div>
+                  {tick}
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* Physical Left: Label of 5 (RTL End) */}
-        <div
-          className="party-axis-flank-text-label is-left"
-          title={`דרגה 5: ${highLabel}`}
-        >
-          <span className="party-axis-flank-text">{highLabel}</span>
+        <div className="party-rows-list">
+          <div className="party-axis-gridlines" aria-hidden="true">
+            {TICKS.map((tick) => (
+              <i
+                key={tick}
+                className={tick === 3 ? 'is-mid' : undefined}
+                style={{ right: `${scoreToPercent(tick)}%` }}
+              />
+            ))}
+          </div>
+
+          {partyScores.map((item) => {
+            const isSelected = selectedParty === item.party;
+            const isDimmed = selectedParty !== 'all' && !isSelected;
+            const truncatedName = getTruncatedPartyName(item.party);
+
+            return (
+              <button
+                key={item.party}
+                type="button"
+                className={`party-score-row ${isSelected ? 'is-selected' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
+                onClick={() => handleMarkerClick(item.party)}
+                onMouseEnter={(e) => openPopover({ kind: 'party', party: item.party }, markerOf(e.currentTarget))}
+                onMouseLeave={scheduleClose}
+                onFocus={(e) => openPopover({ kind: 'party', party: item.party }, markerOf(e.currentTarget))}
+                onBlur={scheduleClose}
+                aria-pressed={isSelected}
+                aria-label={`${item.party}: ציון ממוצע ${item.score.toFixed(1)} מתוך 5, ${item.memberCount} חברי כנסת`}
+              >
+                <span className="party-score-row-inner">
+                  <span
+                    className="party-score-row-marker-pill"
+                    style={{
+                      right: `${scoreToPercent(item.score)}%`,
+                      backgroundColor: item.color,
+                    }}
+                  >
+                    <span className="party-score-pill-name">{truncatedName}</span>
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Narrow screens have no room for the gutters; the poles move inline. */}
+        <div className="party-axis-poles-compact" aria-hidden="true">
+          <span>{lowLabel}</span>
+          <span>{highLabel}</span>
         </div>
       </div>
 
-      {/* Hover Scale Tick Popover */}
-      {activeTick && tickTooltipPos && (
+      <p className="party-score-footnote">
+        <IssueInfoButton topic={topic}>
+          <span className="ai-badge-chip">AI</span>
+        </IssueInfoButton>
+      </p>
+
+      {popover?.kind === 'tick' && (
         <div
+          ref={popoverRef}
           className="party-score-tick-popover"
+          role="tooltip"
           style={{
-            left: `${tickTooltipPos.x}px`,
-            top: `${tickTooltipPos.y}px`,
+            left: `${popoverPos?.x ?? 0}px`,
+            top: `${popoverPos?.y ?? 0}px`,
+            visibility: popoverPos ? 'visible' : 'hidden',
           }}
           onMouseEnter={clearCloseTimer}
-          onMouseLeave={handleMouseLeaveMarker}
+          onMouseLeave={scheduleClose}
         >
           <span
             className="party-score-tick-badge"
-            style={{ backgroundColor: getScoreColor(activeTick.tick) }}
+            style={{ backgroundColor: getScoreColor(popover.tick) }}
           >
-            דרגה {activeTick.tick}
+            דרגה {popover.tick}
           </span>
-          <span className="party-score-tick-text">{activeTick.meaning}</span>
+          <span className="party-score-tick-text">{popover.meaning}</span>
         </div>
       )}
 
-      {/* Hover/Focus Detail Popover */}
-      {activePartyData && tooltipPos && (
+      {activePartyData && (
         <div
+          ref={popoverRef}
           className="party-score-tooltip"
+          role="tooltip"
           style={{
-            left: `${tooltipPos.x}px`,
-            top: `${tooltipPos.y}px`,
+            left: `${popoverPos?.x ?? 0}px`,
+            top: `${popoverPos?.y ?? 0}px`,
+            visibility: popoverPos ? 'visible' : 'hidden',
           }}
           onMouseEnter={clearCloseTimer}
-          onMouseLeave={handleMouseLeaveMarker}
+          onMouseLeave={scheduleClose}
         >
           <div className="party-score-tooltip-header">
             <div className="party-score-tooltip-title">
               <span
-                style={{
-                  display: 'inline-block',
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: activePartyData.color,
-                }}
+                className="party-score-pill-dot"
+                style={{ backgroundColor: activePartyData.color }}
               />
               <span>{activePartyData.party}</span>
             </div>
@@ -359,33 +386,30 @@ export const PartyScoreAxis: React.FC<PartyScoreAxisProps> = ({
             {activePartyData.members.map(({ member, rating }) => {
               const imgUrl = imageFor?.(member);
               return (
-                <div
+                <button
                   key={member.name}
+                  type="button"
                   className="party-score-member-item"
                   onClick={() => {
                     if (onSelectMember) {
                       onSelectMember(member.name);
-                      setActiveParty(null);
+                      closePopover();
                     }
                   }}
                   title={`לחץ לצפייה בפרופיל של ${member.name}`}
                 >
-                  <div className="party-score-member-info">
+                  <span className="party-score-member-info">
                     {imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        alt={member.name}
-                        className="party-score-member-avatar"
-                      />
+                      <img src={imgUrl} alt="" className="party-score-member-avatar" />
                     ) : (
-                      <div className="party-score-member-avatar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
+                      <span className="party-score-member-avatar is-initial" aria-hidden="true">
                         {member.name.charAt(0)}
-                      </div>
+                      </span>
                     )}
                     <span className="party-score-member-name">{member.name}</span>
-                  </div>
+                  </span>
                   <span className="party-score-member-rating">{rating.toFixed(1)}</span>
-                </div>
+                </button>
               );
             })}
           </div>
