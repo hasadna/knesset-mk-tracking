@@ -1,17 +1,8 @@
-"""Tweet and subject embedding pipeline."""
+"""mk_tracking package initialization."""
 
-from mk_tracking.pipeline import (
-    GeneratedText,
-    VertexAIService,
-    embed_subjects,
-    embed_tweets,
-    transform_tweet_exports,
-)
+from mk_tracking.vertex import GeneratedText, VertexAIService
 
 __all__ = [
     "GeneratedText",
     "VertexAIService",
-    "embed_subjects",
-    "embed_tweets",
-    "transform_tweet_exports",
 ]

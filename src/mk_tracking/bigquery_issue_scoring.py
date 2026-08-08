@@ -17,7 +17,7 @@ import numpy as np
 from google.cloud import bigquery
 from tqdm.auto import tqdm
 
-from mk_tracking.pipeline import EMBEDDING_MODEL
+from mk_tracking.vertex import EMBEDDING_MODEL
 
 ANCHORS_PER_ISSUE = 8
 EXPECTED_ISSUE_COUNT = 7

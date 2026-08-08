@@ -41,7 +41,7 @@ from mk_tracking.bigquery_issue_scoring import (
     upload_issue_anchors,
     upload_issue_scores,
 )
-from mk_tracking.pipeline import (
+from mk_tracking.vertex import (
     DEFAULT_EMBEDDING_DIMENSIONS,
     EMBEDDING_MODEL,
     GeneratedText,

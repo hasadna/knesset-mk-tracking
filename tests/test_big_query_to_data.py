@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from mk_tracking.pipeline import EMBEDDING_MODEL
+from mk_tracking.vertex import EMBEDDING_MODEL
 
 SCRIPT_PATH = Path(__file__).parents[1] / "big_query_to_data.py"
 SPEC = importlib.util.spec_from_file_location("big_query_to_data", SCRIPT_PATH)
