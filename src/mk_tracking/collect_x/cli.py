@@ -5,10 +5,8 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from bq_export import DEFAULT_TABLE_ID, push_tweets_to_bigquery
-from x_client import XApiClient
+from mk_tracking.collect_x.bq_export import DEFAULT_TABLE_ID, push_tweets_to_bigquery
+from mk_tracking.collect_x.x_client import XApiClient
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -95,7 +93,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bq_export import (
+from mk_tracking.collect_x.bq_export import (
     calculate_missing_date_intervals,
     get_active_mk_twitter_accounts,
     get_mk_post_date_ranges,

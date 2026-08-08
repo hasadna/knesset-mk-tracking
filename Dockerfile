@@ -28,11 +28,11 @@ COPY --from=ui-build /app/ui/dist /app/ui/dist
 # Install dependencies for the main project
 RUN uv sync --frozen
 
-# Install dependencies for the x_api_collect sub-project
-RUN cd x_api_collect && uv sync --frozen
+# Install dependencies for the collect_x sub-project
+RUN cd src/mk_tracking/collect_x && uv sync --frozen
 
-# Install dependencies for the bill_issues sub-project
-RUN cd bill_issues && uv sync --frozen
+# Install dependencies for the process_bill_issues sub-project
+RUN cd src/mk_tracking/process_bill_issues && uv sync --frozen
 
 # Ensure scripts are executable
 RUN chmod +x /app/run_daily_pipeline.sh

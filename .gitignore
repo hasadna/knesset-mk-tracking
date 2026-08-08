@@ -11,11 +11,11 @@ wheels/
 .venv
 
 # Output data.
-x_api_collect/data/
+src/mk_tracking/collect_x/data/
 ui/data/
 ui/raw/
-summary_creation/output/
-summary_creation/checkpoints/
+src/mk_tracking/process_summaries/output/
+src/mk_tracking/process_summaries/checkpoints/
 data/automatic
 
 # Temporary files

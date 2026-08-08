@@ -1,5 +1,5 @@
 import os
-from bq_export import get_active_mk_twitter_accounts, get_bigquery_client
+from mk_tracking.collect_x.bq_export import get_active_mk_twitter_accounts, get_bigquery_client
 
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not PROJECT_ID:

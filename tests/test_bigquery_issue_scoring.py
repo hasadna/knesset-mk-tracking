@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from mk_tracking.bigquery_issue_scoring import (
+from mk_tracking.process_issue_scoring.bigquery_issue_scoring import (
     ANCHOR_LANGUAGE_COUNTS,
     ANCHORS_PER_ISSUE,
     EXPECTED_ISSUE_COUNT,

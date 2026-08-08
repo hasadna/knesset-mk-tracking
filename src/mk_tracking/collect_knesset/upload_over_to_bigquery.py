@@ -55,7 +55,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from mk_tracking.download_knesset_data.vote_identity import (
+from mk_tracking.collect_knesset.vote_identity import (
     load_crosswalk,
     resolve_vote_results,
 )

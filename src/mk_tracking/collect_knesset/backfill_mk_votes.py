@@ -7,12 +7,12 @@ import logging
 import os
 from pathlib import Path
 
-from mk_tracking.download_knesset_data.upload_over_to_bigquery import (
+from mk_tracking.collect_knesset.upload_over_to_bigquery import (
     DEFAULT_VOTE_CROSSWALK,
     BigQueryUploader,
     fetch_over_vote_results,
 )
-from mk_tracking.download_knesset_data.vote_identity import (
+from mk_tracking.collect_knesset.vote_identity import (
     load_crosswalk,
     resolve_vote_results,
 )

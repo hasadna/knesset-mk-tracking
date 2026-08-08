@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from mk_tracking.summary_creation import full_run
+from mk_tracking.process_summaries import full_run
 
 
 @pytest.mark.xfail(

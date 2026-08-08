@@ -6,7 +6,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from bq_export import get_bigquery_client
+from mk_tracking.collect_x.bq_export import get_bigquery_client
 
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not PROJECT_ID:

@@ -9,7 +9,7 @@ import numpy as np
 
 from mk_tracking.vertex import EMBEDDING_MODEL
 
-SCRIPT_PATH = Path(__file__).parents[1] / "big_query_to_data.py"
+SCRIPT_PATH = Path(__file__).parents[1] / "src" / "mk_tracking" / "process_embeddings" / "big_query_to_data.py"
 SPEC = importlib.util.spec_from_file_location("big_query_to_data", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 MODULE = importlib.util.module_from_spec(SPEC)
