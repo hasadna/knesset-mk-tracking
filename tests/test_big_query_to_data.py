@@ -104,7 +104,7 @@ def _history(path: Path) -> list[dict[str, object]]:
 
 def test_k30_automatic_garbage_model_is_versioned() -> None:
     flags = load_cluster_flags(
-        Path(__file__).parents[1] / "db" / "tweet_cluster_flags.json"
+        Path(__file__).parents[1] / "data" / "automatic" / "tweet_cluster_flags.json"
     )
 
     assert flags.k == DEFAULT_K == 30

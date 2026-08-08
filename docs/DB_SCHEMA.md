@@ -4,7 +4,7 @@ Column-level reference for the deployed dataset. Source of truth: [`db/schema.bq
 
 Companion docs: [`DATABASE_DESIGN.md`](DATABASE_DESIGN.md) (rationale, §10 = v3 spec), [`INGESTION_CONTRACT.md`](INGESTION_CONTRACT.md) (how the pipeline writes).
 
-**Deployed at:** project `$GOOGLE_CLOUD_PROJECT`, dataset `mk_tracking`, location US. ⚠️ Rebuild the dataset with `bq query --use_legacy_sql=false < db/schema.bq.sql` then `db/seed.bq.sql`.
+**Deployed at:** project `$GOOGLE_CLOUD_PROJECT`, dataset `mk_tracking`, location US. ⚠️ Rebuild the dataset with `bq query --use_legacy_sql=false < db/schema.bq.sql` then seed from `data/seed/issues.tsv`.
 
 **v3 → v4:** rebuild the ephemeral dataset before applying these files. `CREATE TABLE IF NOT EXISTS` cannot reshape existing BigQuery tables, and the v4 seed intentionally replaces the old taxonomy.
 
@@ -59,7 +59,7 @@ Natural key: **`knesset_member_id`** (external, from Knesset OData / Open Knesse
 | `gender` | STRING | yes | |
 | `home_city` | STRING | yes | |
 | `bio_he` / `bio_en` | STRING | yes | |
-| `is_current` | BOOL | no | default TRUE — sitting in the current Knesset; authoritative roster snapshot: `db/current_mk_roster_2026-07-31.tsv` |
+| `is_current` | BOOL | no | default TRUE — sitting in the current Knesset; authoritative roster snapshot: `data/seed/current_mk_roster_2026-07-31.tsv` |
 | `created_at` / `updated_at` | TIMESTAMP | no | default now |
 
 ### `party`
@@ -82,7 +82,7 @@ Natural key: **`knesset_committee_id`**.
 | `name_en` | STRING | yes | |
 
 ### `issue` — the curated policy taxonomy
-Natural key: **`slug`**. Seeded only from [`db/seed.bq.sql`](../db/seed.bq.sql); the closed list everything is tagged against. Curation direction: concrete, verifiable areas (economic etc.). **Never invent slugs in the pipeline.**
+Natural key: **`slug`**. Seeded only from [`data/seed/issues.tsv`](../data/seed/issues.tsv); the closed list everything is tagged against. Curation direction: concrete, verifiable areas (economic etc.). **Never invent slugs in the pipeline.**
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -116,7 +116,7 @@ them.
 FK: `mk_id` → mk, `party_id` → party. Current membership = `end_date IS NULL`. Seeded with current rows; history back-fills later without schema change.
 
 The current roster and its 120 open affiliations are applied by
-`db/apply_current_mk_roster_2026-07-31.bq.sql`. Generic person ingestion may
+`db/apply_current_mk_roster.bq.sql`. Generic person ingestion may
 enrich MK identity fields, but must not derive `mk.is_current` from
 `kns_person.iscurrent`.
 
@@ -343,5 +343,5 @@ Per `(mk_id, issue_id, event_kind)`: `votes_for`, `votes_against`, `votes_abstai
   empty before their backfill). BigQuery cannot enforce fixed array length, so
   writers validate it.
 - **Scan hygiene**: `social_post` and `post_issue` are the only tables expected to grow large. Filter `social_post` by `mk_id` (cluster) and `posted_at` (partition) wherever possible.
-- **Rebuild after environment recreation or a schema migration (e.g. v3→v4)**: `schema.bq.sql` + `seed.bq.sql` are idempotent once v4 exists; serving data replays from the pipeline's kept JSONL batches.
+- **Rebuild after environment recreation or a schema migration (e.g. v3→v4)**: `schema.bq.sql` + `data/seed/issues.tsv` are idempotent once v4 exists; serving data replays from the pipeline's kept JSONL batches.
 - **Empty prerequisite**: `mk` must be loaded (from Knesset OData) before any pipeline writes resolve.

@@ -289,8 +289,8 @@ Known simplifications accepted at this stage: correlated subqueries in `v_mk_car
 
 **Deployed reality:**
 - **Project:** `YOUR_PROJECT_ID` (GCP; service account `your-service-account@your-project.iam.gserviceaccount.com`)
-- **Dataset:** `mk_tracking` (location US) — the authoritative tables and serving views are defined in [`db/schema.bq.sql`](../db/schema.bq.sql); issues are seeded from [`db/seed.bq.sql`](../db/seed.bq.sql)
-- ⚠️ **BigQuery projects are persistent.** The repo is the source of truth; both `.bq.sql` files are idempotent and rebuild the whole dataset in under a minute when needed: `bq query --use_legacy_sql=false < db/schema.bq.sql && bq query --use_legacy_sql=false < db/seed.bq.sql`
+- **Dataset:** `mk_tracking` (location US) — the authoritative tables and serving views are defined in [`db/schema.bq.sql`](../db/schema.bq.sql); issues are seeded from [`data/seed/issues.tsv`](../data/seed/issues.tsv)
+- ⚠️ **BigQuery projects are persistent.** The repo is the source of truth; schema is idempotent and rebuilds the whole dataset in under a minute when needed: `bq query --use_legacy_sql=false < db/schema.bq.sql`
 
 **Postgres → BigQuery deltas** (details in the header of `schema.bq.sql`):
 - Enums/CHECKs → STRING columns with allowed values in column descriptions; the **pipeline validates**.
@@ -342,7 +342,7 @@ Requirement: 1:N, N:1, and possibly M:N mappings, with subtleties not apparent f
 
 Direction at v3 was to prefer concrete, objectively-verifiable issue areas. The
 deployed taxonomy is now the eight-row set documented in `docs/ISSUES.md` and
-reproduced by `db/seed.bq.sql`.
+reproduced by `data/seed/issues.tsv`.
 
 ### 10.5 Verification
 

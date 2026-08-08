@@ -15,7 +15,7 @@ from .vote_identity import build_exact_crosswalk, validate_crosswalk
 
 DEFAULT_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT")
 DEFAULT_DATASET = "mk_tracking"
-DEFAULT_OUTPUT = Path("db/vote_mkid_crosswalk.json")
+DEFAULT_OUTPUT = Path("data/automatic/vote_mkid_crosswalk.json")
 
 
 def fetch_current_mks(project: str, dataset: str) -> list[dict[str, object]]:

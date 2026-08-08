@@ -5,7 +5,7 @@ Snapshot generated on 2026-07-31 from read-only queries against:
 - the authoritative 120 current MKs in BigQuery;
 - Over Knesset's `kns_plenumvoteresult` table.
 
-The machine-readable artifact is `db/vote_mkid_crosswalk.json`. It maps the
+The machine-readable artifact is `data/automatic/vote_mkid_crosswalk.json`. It maps the
 vote source's `mkid` to the canonical `mk.knesset_member_id` used by this
 project. It has not been applied to BigQuery.
 

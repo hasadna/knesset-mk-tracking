@@ -69,7 +69,7 @@ HEADERS = {
     "Accept": "application/json",
 }
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_VOTE_CROSSWALK = PROJECT_ROOT / "db" / "vote_mkid_crosswalk.json"
+DEFAULT_VOTE_CROSSWALK = PROJECT_ROOT / "data" / "automatic" / "vote_mkid_crosswalk.json"
 
 # Logging configuration
 logging.basicConfig(

@@ -104,7 +104,7 @@ For detailed documentation, see:
 | Pipeline → DB ingestion contract | `docs/INGESTION_CONTRACT.md` |
 | Ingestion MERGE script + staging schemas | `db/merge_ingest.bq.sql`, `db/staging/*.schema.json` |
 | BigQuery DDL v4 (deployed) | `db/schema.bq.sql` |
-| BigQuery seed data (deployed) | `db/seed.bq.sql` |
+| BigQuery seed data (deployed) | `data/seed/issues.tsv` |
 | Knesset OData API docs | http://oknesset-api.readthedocs.io/en/latest/ |
 
 ### Initialization (first time)
@@ -113,7 +113,7 @@ After deploying schema, initialize BigQuery tables:
 
 ```bash
 bq query --use_legacy_sql=false < db/schema.bq.sql
-bq query --use_legacy_sql=false < db/seed.bq.sql
+# Load seed issues from data/seed/issues.tsv
 ```
 
 Initialize issue anchor embeddings (one-time):

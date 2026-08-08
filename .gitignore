@@ -11,17 +11,12 @@ wheels/
 .venv
 
 # Output data.
-# NOTE: this must be `data/*`, not `data/` — git will not descend into an
-# excluded directory, so a negation inside one has no effect.
-data/*
-# The issue taxonomy is source, not output. The pipeline and
-# tests/test_pipeline.py both depend on it.
-!data/subjects.json
 x_api_collect/data/
 ui/data/
 ui/raw/
 summary_creation/output/
 summary_creation/checkpoints/
+data/automatic
 
 # Temporary files
 found_mks.*
