@@ -423,6 +423,321 @@
       color: var(--cyan);
     }
 
+    /* Pipeline Flowchart Component */
+    .flowchart-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 2.25rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    }
+
+    .flowchart-title {
+      font-family: var(--font-heading);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .flowchart-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .flow-layer {
+      background: rgba(13, 18, 31, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .flow-layer.layer-collection {
+      border-right: 4px solid var(--cyan);
+    }
+
+    .flow-layer.layer-staging {
+      border-right: 4px solid var(--amber);
+      background: rgba(245, 158, 11, 0.04);
+    }
+
+    .flow-layer.layer-processing {
+      border-right: 4px solid var(--primary);
+    }
+
+    .flow-layer.layer-serving {
+      border-right: 4px solid var(--emerald);
+    }
+
+    .flow-layer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .flow-layer-title {
+      font-weight: 800;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .layer-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-collection { background: rgba(6, 182, 212, 0.15); color: var(--cyan-light); border: 1px solid rgba(6, 182, 212, 0.3); }
+    .badge-staging { background: rgba(245, 158, 11, 0.15); color: var(--amber-light); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-processing { background: rgba(99, 102, 241, 0.15); color: var(--primary-light); border: 1px solid rgba(99, 102, 241, 0.3); }
+    .badge-serving { background: rgba(16, 185, 129, 0.15); color: var(--emerald-light); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .flow-nodes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .flow-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .flow-node:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .node-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .node-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .node-code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--cyan-light);
+      background: var(--bg-code);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      width: fit-content;
+      margin-top: 0.25rem;
+    }
+
+    .node-source {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+    }
+
+    .node-source strong {
+      color: var(--cyan-light);
+    }
+
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.15rem 0;
+      color: var(--text-muted);
+    }
+
+    .flow-arrow-icon {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: var(--primary-light);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: pulse-arrow 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-arrow {
+      0%, 100% { transform: translateY(0); opacity: 0.6; }
+      50% { transform: translateY(4px); opacity: 1; stroke: var(--cyan-light); }
+    }
+
+    /* Interactive Data Lineage & Dependency Control Bar */
+    .lineage-control-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: var(--bg-code);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .lineage-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .lineage-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      min-width: 140px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .lineage-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .lineage-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.45rem 0.9rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .lineage-btn:hover {
+      border-color: var(--border-accent);
+      color: var(--text-primary);
+      background: rgba(99, 102, 241, 0.15);
+    }
+
+    .lineage-btn.active {
+      background: linear-gradient(135deg, var(--primary), #4f46e5);
+      color: white;
+      border-color: var(--primary-light);
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+
+    .lineage-btn.rerun-trigger {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: var(--amber-light);
+    }
+
+    .lineage-btn.rerun-trigger:hover {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: var(--amber);
+    }
+
+    .lineage-btn.rerun-trigger.active {
+      background: linear-gradient(135deg, var(--amber), #d97706);
+      color: white;
+      border-color: var(--amber-light);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+    }
+
+    .rerun-info-banner {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 12px;
+      padding: 0.9rem 1.25rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .node-rerun-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: var(--amber);
+      color: #000;
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .flow-node {
+      transition: all 0.25s ease;
+    }
+
+    .flow-node.is-dimmed {
+      opacity: 0.25;
+      filter: grayscale(80%);
+      transform: scale(0.98);
+    }
+
+    .flow-node.is-highlighted {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.35);
+      transform: scale(1.02);
+    }
+
+    .flow-node.is-rerun-source {
+      border-color: var(--rose);
+      box-shadow: 0 0 24px rgba(244, 63, 94, 0.45);
+      background: rgba(244, 63, 94, 0.1);
+    }
+
+    .flow-node.is-rerun-target {
+      border-color: var(--amber);
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.45);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
     /* Pipeline Workflow Interactive Steps */
     .pipeline-container {
       background: var(--bg-card);
@@ -918,6 +1233,221 @@
       <div class="section-header">
         <div class="section-title">🔄 צינור הנתונים (End-to-End Data Pipeline)</div>
         <div class="section-subtitle">תהליך איסוף הנתונים, הוקטוריזציה, הסיווג, הניתוח והחשיפה ב-API</div>
+      </div>
+
+      <!-- Interactive Pipeline Flowchart with Data Stream Tracing & Dependency Simulation -->
+      <div class="flowchart-wrapper">
+        <div class="flowchart-title">
+          <span>🗺️ תרשים זרימת הנתונים ומפת תלויות (Data Lineage & Dependency Graph)</span>
+          <span style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted); margin-right: auto;">איסוף ➔ אחסון ב-BigQuery ➔ עיבוד אלגוריתמי ו-AI ➔ אפליקציית שרת (FastAPI & React)</span>
+        </div>
+
+        <!-- Lineage & Dependency Interactive Control Bar -->
+        <div class="lineage-control-bar">
+          <div class="lineage-row">
+            <div class="lineage-label">🔍 מעקב זרימת מידע:</div>
+            <div class="lineage-btn-group">
+              <button class="lineage-btn active" onclick="setStreamFilter('all', this)">🌐 כל הרשת (כל הצינור)</button>
+              <button class="lineage-btn" onclick="setStreamFilter('x', this)">🐦 נתיב ציוצי X (טוויטר)</button>
+              <button class="lineage-btn" onclick="setStreamFilter('knesset', this)">🏛️ נתיב חוקים וכנסת</button>
+              <button class="lineage-btn" onclick="setStreamFilter('votes', this)">🗳️ נתיב הצבעות מליאה</button>
+            </div>
+          </div>
+          
+          <div class="lineage-row">
+            <div class="lineage-label">⚡ סימולציית הרצה מחדש:</div>
+            <div class="lineage-btn-group">
+              <button class="lineage-btn rerun-trigger" onclick="simulateReRun('collect_x', this)">
+                <span>🔄 אוספים מחדש ציוצי X</span>
+              </button>
+              <button class="lineage-btn rerun-trigger" onclick="simulateReRun('collect_knesset', this)">
+                <span>🏛️ מעדכנים נתוני כנסת</span>
+              </button>
+              <button class="lineage-btn rerun-trigger" onclick="simulateReRun('anchors', this)">
+                <span>🎯 מעדכנים עוגנים סמנטיים</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Re-run Explanation Dynamic Banner -->
+        <div class="rerun-info-banner" id="rerunBanner">
+          <span style="font-size: 1.3rem;">ℹ️</span>
+          <div id="rerunBannerText"></div>
+        </div>
+
+        <div class="flowchart-grid">
+          
+          <!-- Layer 1: Data Collection -->
+          <div class="flow-layer layer-collection">
+            <div class="flow-layer-header">
+              <div class="flow-layer-title" style="color: var(--cyan-light);">
+                <span>📥 1. שכבת איסוף נתונים (Data Collection Layer)</span>
+              </div>
+              <span class="layer-badge badge-collection">Ingestion / Collect</span>
+            </div>
+            <div class="flow-nodes-container">
+              <div class="flow-node" id="node-collect_knesset" data-streams="knesset">
+                <div class="node-header">
+                  <div class="node-title">🏛️ נתוני כנסת גולמיים</div>
+                  <span class="node-rerun-badge">מקור הרצה</span>
+                </div>
+                <div class="node-desc">שאיבת ח"כים, מפלגות, תפקידים, חוקים והצבעות מ-OData API.</div>
+                <div class="node-code">src/mk_tracking/collect_knesset/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> OData API של פורטל הכנסת / כנסת פתוחה</div>
+              </div>
+
+              <div class="flow-node" id="node-collect_x" data-streams="x">
+                <div class="node-header">
+                  <div class="node-title">🐦 נתוני רשת X (טוויטר)</div>
+                  <span class="node-rerun-badge">מקור הרצה</span>
+                </div>
+                <div class="node-desc">קליטת ציוצים מחשבונות ח"כים פעילים בזמן אמת.</div>
+                <div class="node-code">src/mk_tracking/collect_x/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> Twitter/X REST API v2</div>
+              </div>
+
+              <div class="flow-node" id="node-collect_votes" data-streams="votes">
+                <div class="node-header">
+                  <div class="node-title">🗳️ הצבעות היסטוריות</div>
+                  <span class="node-rerun-badge">מקור הרצה</span>
+                </div>
+                <div class="node-desc">ניתוח וייצוא אירועי הצבעה במליאה ובוועדות.</div>
+                <div class="node-code">src/mk_tracking/collect_votes/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> אתר הכנסת (הצבעות מליאה ווועדות)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connector Arrow -->
+          <div class="flow-connector">
+            <svg class="flow-arrow-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          </div>
+
+          <!-- Layer 2: BigQuery Raw Staging -->
+          <div class="flow-layer layer-staging">
+            <div class="flow-layer-header">
+              <div class="flow-layer-title" style="color: var(--amber-light);">
+                <span>🗄️ 2. אחסון גולמי ומאגר נתונים (BigQuery Data Warehouse)</span>
+              </div>
+              <span class="layer-badge badge-staging">BigQuery Raw Staging</span>
+            </div>
+            <div class="flow-nodes-container" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+              <div class="flow-node" id="node-table-mk" data-streams="knesset" style="border-style: dashed;">
+                <div class="node-title" style="font-size: 0.85rem;"><code>mk_tracking.mk</code></div>
+                <div class="node-desc">פרופילי ח"כים ושיוכים</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code></div>
+              </div>
+              <div class="flow-node" id="node-table-social" data-streams="x" style="border-style: dashed;">
+                <div class="node-title" style="font-size: 0.85rem;"><code>social_post</code></div>
+                <div class="node-desc">ציוצי X גולמיים</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_x</code></div>
+              </div>
+              <div class="flow-node" id="node-table-bill" data-streams="knesset votes" style="border-style: dashed;">
+                <div class="node-title" style="font-size: 0.85rem;"><code>bill & vote_event</code></div>
+                <div class="node-desc">הצעות חוק והצבעות</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code> & <code>collect_votes</code></div>
+              </div>
+              <div class="flow-node" id="node-table-anchors" data-streams="anchors x" style="border-style: dashed;">
+                <div class="node-title" style="font-size: 0.85rem;"><code>issue_anchor</code></div>
+                <div class="node-desc">56 עוגנים סמנטיים</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>data/seed/issue_anchors.json</code></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connector Arrow -->
+          <div class="flow-connector">
+            <svg class="flow-arrow-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          </div>
+
+          <!-- Layer 3: Data Processing & AI -->
+          <div class="flow-layer layer-processing">
+            <div class="flow-layer-header">
+              <div class="flow-layer-title" style="color: var(--primary-light);">
+                <span>⚙️ 3. שכבת עיבוד אלגוריתמי ובינה מלאכותית (Data Processing & AI Layer)</span>
+              </div>
+              <span class="layer-badge badge-processing">Processing / AI</span>
+            </div>
+            <div class="flow-nodes-container">
+              <div class="flow-node" id="node-process_embeddings" data-streams="x">
+                <div class="node-header">
+                  <div class="node-title">🧠 וקטוריזציה ואשכול</div>
+                  <span class="node-rerun-badge">שלב [1]</span>
+                </div>
+                <div class="node-desc">יצירת 3,072d Embeddings, אשכול K-Means (K=30) וסינון זבל.</div>
+                <div class="node-code">src/mk_tracking/process_embeddings/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> מקבל ציוצים מ-<code>social_post</code> (BigQuery)</div>
+              </div>
+
+              <div class="flow-node" id="node-process_issue_scoring" data-streams="x anchors">
+                <div class="node-header">
+                  <div class="node-title">🎯 סיווג נושאים (Issue Scoring)</div>
+                  <span class="node-rerun-badge">שלב [2]</span>
+                </div>
+                <div class="node-desc">חישוב Cosine Divergence מול עוגנים וחישוב Softmax (T=0.07).</div>
+                <div class="node-code">src/mk_tracking/process_issue_scoring/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> מקבל וקטורים מ-<code>process_embeddings</code> ועוגנים מ-<code>issue_anchor</code></div>
+              </div>
+
+              <div class="flow-node" id="node-process_bill_issues" data-streams="knesset votes">
+                <div class="node-header">
+                  <div class="node-title">📄 סיווג חוקים והצבעות</div>
+                  <span class="node-rerun-badge">שלב [1]</span>
+                </div>
+                <div class="node-desc">הערכת חוקים ב-Gemini ומודל הצבעות לקריאה מהירה.</div>
+                <div class="node-code">src/mk_tracking/process_bill_issues/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> מקבל חוקים והצבעות מ-<code>bill & vote_event</code> (נטענו ע"י <code>collect_knesset</code>)</div>
+              </div>
+
+              <div class="flow-node" id="node-process_summaries" data-streams="x knesset anchors">
+                <div class="node-header">
+                  <div class="node-title">✍️ סיכום עמדות ב-AI</div>
+                  <span class="node-rerun-badge">שלב [3]</span>
+                </div>
+                <div class="node-desc">ניתוח ראיות וייצור סיכום עמדה מנומק ב-Gemini 3.6 Flash.</div>
+                <div class="node-code">src/mk_tracking/process_summaries/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> מקבל ציוצים מסווגים מ-<code>process_issue_scoring</code> ונתוני ח"כים מ-<code>collect_knesset</code></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connector Arrow -->
+          <div class="flow-connector">
+            <svg class="flow-arrow-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          </div>
+
+          <!-- Layer 4: Serving & Web App -->
+          <div class="flow-layer layer-serving">
+            <div class="flow-layer-header">
+              <div class="flow-layer-title" style="color: var(--emerald-light);">
+                <span>🚀 4. שכבת ה-API והאפליקציה (Serving & UI Layer)</span>
+              </div>
+              <span class="layer-badge badge-serving">Serving / Web App</span>
+            </div>
+            <div class="flow-nodes-container">
+              <div class="flow-node" id="node-ui_app" data-streams="x knesset votes anchors">
+                <div class="node-header">
+                  <div class="node-title">⚡ FastAPI Backend Server</div>
+                  <span class="node-rerun-badge">רענן מטמון</span>
+                </div>
+                <div class="node-desc">שרת Python רזה המבצע שאילתות מול BigQuery עם מטמון TTL ל-30 דקות.</div>
+                <div class="node-code">src/mk_tracking/ui_app/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> קורא ממאגרי BigQuery שהופקו ע"י <code>process_summaries</code>, <code>process_bill_issues</code>, <code>process_issue_scoring</code></div>
+              </div>
+
+              <div class="flow-node" id="node-ui_frontend" data-streams="x knesset votes anchors">
+                <div class="node-header">
+                  <div class="node-title">💻 React 19 + Vite UI</div>
+                </div>
+                <div class="node-desc">ממשק משתמש מתקדם: לוח מפלגות, מגירת ח"כ, ראיות וציר הצבעות.</div>
+                <div class="node-code">ui/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> מקבל נתונים משרת ה-Backend <code>ui_app</code> (FastAPI REST API)</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div class="pipeline-container">
@@ -1542,6 +2072,101 @@
           row.style.display = '';
         } else {
           row.style.display = 'none';
+        }
+      });
+    }
+
+    /* Interactive Data Lineage & Re-Run Tracing JS */
+    function setStreamFilter(streamType, btn) {
+      document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const banner = document.getElementById('rerunBanner');
+      if (banner) banner.style.display = 'none';
+
+      const nodes = document.querySelectorAll('.flow-node');
+      nodes.forEach(node => {
+        node.classList.remove('is-dimmed', 'is-highlighted', 'is-rerun-source', 'is-rerun-target');
+        const badge = node.querySelector('.node-rerun-badge');
+        if (badge) badge.style.display = 'none';
+      });
+
+      if (streamType === 'all') return;
+
+      nodes.forEach(node => {
+        const streams = (node.getAttribute('data-streams') || '').split(' ');
+        if (streams.includes(streamType)) {
+          node.classList.add('is-highlighted');
+        } else {
+          node.classList.add('is-dimmed');
+        }
+      });
+    }
+
+    function simulateReRun(triggerId, btn) {
+      document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const banner = document.getElementById('rerunBanner');
+      const bannerText = document.getElementById('rerunBannerText');
+      if (banner) banner.style.display = 'flex';
+
+      const nodes = document.querySelectorAll('.flow-node');
+      nodes.forEach(node => {
+        node.classList.remove('is-dimmed', 'is-highlighted', 'is-rerun-source', 'is-rerun-target');
+        const badge = node.querySelector('.node-rerun-badge');
+        if (badge) badge.style.display = 'none';
+      });
+
+      let affectedIds = [];
+      let stepBadges = {};
+
+      if (triggerId === 'collect_x') {
+        bannerText.innerHTML = '<strong>איסוף ציוצי X מחדש:</strong> מקור השינוי הוא <code>collect_x</code> (הורדו ציוצים חדשים אל <code>social_post</code>). יש להריץ ברצף: <strong>[1] process_embeddings</strong> (וקטוריזציה) ➔ <strong>[2] process_issue_scoring</strong> (סיווג נושאים) ➔ <strong>[3] process_summaries</strong> (ניתוח עמדות AI). <em>(חוקים ונתוני כנסת אינם דורשים הרצה מחדש!)</em>';
+        affectedIds = ['node-collect_x', 'node-table-social', 'node-process_embeddings', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
+        stepBadges = {
+          'node-collect_x': 'מקור הרצה',
+          'node-process_embeddings': '1. הרץ תחילה',
+          'node-process_issue_scoring': '2. הרץ לאחר מכן',
+          'node-process_summaries': '3. הרץ בסוף',
+          'node-ui_app': 'רענן מטמון'
+        };
+      } else if (triggerId === 'collect_knesset') {
+        bannerText.innerHTML = '<strong>עדכון נתוני כנסת:</strong> מקור השינוי הוא <code>collect_knesset</code> (הורדו חוקים וח"כים חדשים אל <code>bill</code> ו-<code>mk</code>). יש להריץ: <strong>[1] process_bill_issues</strong> לקטלוג חוקים והצבעות, ו-<strong>[2] process_summaries</strong> במידה ונוספו/עודכנו חברי כנסת.';
+        affectedIds = ['node-collect_knesset', 'node-table-mk', 'node-table-bill', 'node-process_bill_issues', 'node-process_summaries', 'node-ui_app'];
+        stepBadges = {
+          'node-collect_knesset': 'מקור הרצה',
+          'node-process_bill_issues': '1. קטלוג חוקים',
+          'node-process_summaries': '2. סיכום עמדות',
+          'node-ui_app': 'רענן מטמון'
+        };
+      } else if (triggerId === 'anchors') {
+        bannerText.innerHTML = '<strong>עדכון עוגנים סמנטיים:</strong> שונתה טבלת <code>issue_anchor</code>. <em>(אין צורך בוקטוריזציית ציוצים מחדש ב-process_embeddings!)</em>. יש להריץ בלבד: <strong>[1] process_issue_scoring</strong> ➔ <strong>[2] process_summaries</strong>.';
+        affectedIds = ['node-table-anchors', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
+        stepBadges = {
+          'node-table-anchors': 'עוגנים שונו',
+          'node-process_issue_scoring': '1. סיווג מחדש',
+          'node-process_summaries': '2. סיכום מחדש',
+          'node-ui_app': 'רענן מטמון'
+        };
+      }
+
+      nodes.forEach(node => {
+        if (affectedIds.includes(node.id)) {
+          if (node.id.startsWith('node-collect_') || node.id === 'node-table-anchors') {
+            node.classList.add('is-rerun-source');
+          } else {
+            node.classList.add('is-rerun-target');
+          }
+          if (stepBadges[node.id]) {
+            const badge = node.querySelector('.node-rerun-badge');
+            if (badge) {
+              badge.textContent = stepBadges[node.id];
+              badge.style.display = 'inline-flex';
+            }
+          }
+        } else {
+          node.classList.add('is-dimmed');
         }
       });
     }
