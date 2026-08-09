@@ -30,7 +30,7 @@ dev = [
 [project.scripts]
 collect-knesset = "mk_tracking.collect_knesset.upload_over_to_bigquery:main"
 collect-x = "mk_tracking.collect_x.cli:main"
-collect-votes = "mk_tracking.collect_votes.analyze_vote_events:main"
+analyze-votes = "mk_tracking.analyze_votes.cli:main"
 process-embeddings = "mk_tracking.process_embeddings.big_query_to_data:main"
 process-issue-scoring = "mk_tracking.process_issue_scoring.bigquery_issue_scoring:main"
 process-bill-issues = "mk_tracking.process_bill_issues.cli:main"

@@ -29,7 +29,7 @@ def parser() -> argparse.ArgumentParser:
     preview = commands.add_parser("preview", help="write prompts without calling GCP")
     preview.add_argument("--politician", action="append")
     preview.add_argument(
-        "--output-dir", type=Path, default=Path("summary_creation/output/prompts")
+        "--output-dir", type=Path, default=Path("src/mk_tracking/process_summaries/output/prompts")
     )
 
     create = commands.add_parser("generate", help="generate a candidate with Vertex AI")
@@ -40,10 +40,10 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument(
         "--output",
         type=Path,
-        default=Path("summary_creation/output/analysis.candidate.json"),
+        default=Path("src/mk_tracking/process_summaries/output/analysis.candidate.json"),
     )
     create.add_argument(
-        "--checkpoints", type=Path, default=Path("summary_creation/checkpoints")
+        "--checkpoints", type=Path, default=Path("src/mk_tracking/process_summaries/checkpoints")
     )
 
     create_db = commands.add_parser(
@@ -61,10 +61,10 @@ def parser() -> argparse.ArgumentParser:
         "--min-confidence", type=float, default=0.20, help="minimum similarity confidence threshold"
     )
     create_db.add_argument(
-        "--output", type=Path, default=Path("summary_creation/output/db-sample.json")
+        "--output", type=Path, default=Path("src/mk_tracking/process_summaries/output/db-sample.json")
     )
     create_db.add_argument(
-        "--checkpoints", type=Path, default=Path("summary_creation/checkpoints")
+        "--checkpoints", type=Path, default=Path("src/mk_tracking/process_summaries/checkpoints")
     )
     create_db.add_argument(
         "--write-db",
@@ -92,10 +92,10 @@ def parser() -> argparse.ArgumentParser:
         "--min-confidence", type=float, default=0.20, help="minimum similarity confidence threshold"
     )
     run_db.add_argument(
-        "--output-dir", type=Path, default=Path("summary_creation/output/full-run")
+        "--output-dir", type=Path, default=Path("src/mk_tracking/process_summaries/output/full-run")
     )
     run_db.add_argument(
-        "--checkpoints", type=Path, default=Path("summary_creation/checkpoints")
+        "--checkpoints", type=Path, default=Path("src/mk_tracking/process_summaries/checkpoints")
     )
     return result
 

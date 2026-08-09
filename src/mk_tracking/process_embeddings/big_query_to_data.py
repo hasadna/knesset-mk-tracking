@@ -28,7 +28,7 @@ from google.cloud import bigquery
 from sklearn.cluster import KMeans
 from tqdm.auto import tqdm
 
-from mk_tracking.issue_scoring.bigquery_issue_scoring import (
+from mk_tracking.process_issue_scoring.bigquery_issue_scoring import (
     DEFAULT_SOFTMAX_TEMPERATURE,
     compute_missing_issue_scores,
     fetch_existing_post_issue_pairs,

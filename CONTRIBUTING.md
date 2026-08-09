@@ -72,6 +72,24 @@ There is currently **no offline demo mode**. If you'd like to contribute but don
 
 See `.env.example` for all required environment variables.
 
+## Package Naming & CLI Conventions
+
+When adding or modifying CLI modules under `src/mk_tracking/`:
+
+1. **Package Prefixes**:
+   - `collect_*`: Data Collection & Ingestion pipeline steps (e.g. `collect_knesset`, `collect_x`).
+   - `process_*`: Data Processing, vectorization, scoring, and AI summary pipeline steps (e.g. `process_embeddings`, `process_issue_scoring`, `process_bill_issues`, `process_summaries`).
+   - `analyze_*`: Standalone analysis and utility tools **outside** the production pipeline (e.g. `analyze_votes`).
+   - `ui_app`: FastAPI web server.
+
+2. **Date Parameters**:
+   - Do **NOT** use relative year offsets or `--years` flags.
+   - Use standard `--start-date YYYY-MM-DD` (and optionally `--end-date YYYY-MM-DD`).
+
+3. **Gemini Flag Names**:
+   - Do **NOT** use generic flag names like `--eval-gemini`.
+   - Use explicit, descriptive flag names (e.g. `--classify-divisiveness`, `--classify-topics`).
+
 ## Submitting a Contribution
 
 1. Fork the repository and create a feature branch: `git checkout -b feat/your-feature-name`

@@ -1245,16 +1245,6 @@
         <!-- Lineage & Dependency Interactive Control Bar -->
         <div class="lineage-control-bar">
           <div class="lineage-row">
-            <div class="lineage-label">🔍 מעקב זרימת מידע:</div>
-            <div class="lineage-btn-group">
-              <button class="lineage-btn active" onclick="setStreamFilter('all', this)">🌐 כל הרשת (כל הצינור)</button>
-              <button class="lineage-btn" onclick="setStreamFilter('x', this)">🐦 נתיב ציוצי X (טוויטר)</button>
-              <button class="lineage-btn" onclick="setStreamFilter('knesset', this)">🏛️ נתיב חוקים וכנסת</button>
-              <button class="lineage-btn" onclick="setStreamFilter('votes', this)">🗳️ נתיב הצבעות מליאה</button>
-            </div>
-          </div>
-          
-          <div class="lineage-row">
             <div class="lineage-label">⚡ סימולציית הרצה מחדש:</div>
             <div class="lineage-btn-group">
               <button class="lineage-btn rerun-trigger" onclick="simulateReRun('collect_x', this)">
@@ -1264,7 +1254,7 @@
                 <span>🏛️ מעדכנים נתוני כנסת</span>
               </button>
               <button class="lineage-btn rerun-trigger" onclick="simulateReRun('anchors', this)">
-                <span>🎯 מעדכנים עוגנים סמנטיים</span>
+                <span>🎯 מעדכנים נושאים או עוגנים סמנטיים</span>
               </button>
             </div>
           </div>
@@ -1304,17 +1294,7 @@
                 </div>
                 <div class="node-desc">קליטת ציוצים מחשבונות ח"כים פעילים בזמן אמת.</div>
                 <div class="node-code">src/mk_tracking/collect_x/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> Twitter/X REST API v2</div>
-              </div>
-
-              <div class="flow-node" id="node-collect_votes" data-streams="votes">
-                <div class="node-header">
-                  <div class="node-title">🗳️ הצבעות היסטוריות</div>
-                  <span class="node-rerun-badge">מקור הרצה</span>
-                </div>
-                <div class="node-desc">ניתוח וייצוא אירועי הצבעה במליאה ובוועדות.</div>
-                <div class="node-code">src/mk_tracking/collect_votes/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> אתר הכנסת (הצבעות מליאה ווועדות)</div>
+                <div class="node-source"><strong>מקור קלט:</strong> Twitter/X REST API v2 <em>(מוזן מטבלאות <code>mk & mk_social_account</code>)</em></div>
               </div>
             </div>
           </div>
@@ -1334,19 +1314,19 @@
             </div>
             <div class="flow-nodes-container" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
               <div class="flow-node" id="node-table-mk" data-streams="knesset" style="border-style: dashed;">
-                <div class="node-title" style="font-size: 0.85rem;"><code>mk_tracking.mk</code></div>
-                <div class="node-desc">פרופילי ח"כים ושיוכים</div>
-                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code></div>
+                <div class="node-title" style="font-size: 0.85rem;"><code>mk & mk_social_account</code></div>
+                <div class="node-desc">סגל ח"כים (MK Roster), סיעות וחשבונות רשת</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code> + סקריפטי עדכון: <code>db/apply_current_mk_roster.bq.sql</code> (קובץ TSV סגל), <code>populate_mk_accounts.py</code> (Wikidata) ו-<code>insert_missing_mks.py</code></div>
               </div>
               <div class="flow-node" id="node-table-social" data-streams="x" style="border-style: dashed;">
                 <div class="node-title" style="font-size: 0.85rem;"><code>social_post</code></div>
                 <div class="node-desc">ציוצי X גולמיים</div>
                 <div class="node-source"><strong>מוזן מ:</strong> <code>collect_x</code></div>
               </div>
-              <div class="flow-node" id="node-table-bill" data-streams="knesset votes" style="border-style: dashed;">
+              <div class="flow-node" id="node-table-bill" data-streams="knesset" style="border-style: dashed;">
                 <div class="node-title" style="font-size: 0.85rem;"><code>bill & vote_event</code></div>
                 <div class="node-desc">הצעות חוק והצבעות</div>
-                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code> & <code>collect_votes</code></div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code></div>
               </div>
               <div class="flow-node" id="node-table-anchors" data-streams="anchors x" style="border-style: dashed;">
                 <div class="node-title" style="font-size: 0.85rem;"><code>issue_anchor</code></div>
@@ -1390,7 +1370,7 @@
                 <div class="node-source"><strong>מקור קלט:</strong> מקבל וקטורים מ-<code>process_embeddings</code> ועוגנים מ-<code>issue_anchor</code></div>
               </div>
 
-              <div class="flow-node" id="node-process_bill_issues" data-streams="knesset votes">
+              <div class="flow-node" id="node-process_bill_issues" data-streams="knesset">
                 <div class="node-header">
                   <div class="node-title">📄 סיווג חוקים והצבעות</div>
                   <span class="node-rerun-badge">שלב [1]</span>
@@ -1407,7 +1387,7 @@
                 </div>
                 <div class="node-desc">ניתוח ראיות וייצור סיכום עמדה מנומק ב-Gemini 3.6 Flash.</div>
                 <div class="node-code">src/mk_tracking/process_summaries/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> מקבל ציוצים מסווגים מ-<code>process_issue_scoring</code> ונתוני ח"כים מ-<code>collect_knesset</code></div>
+                <div class="node-source"><strong>מקור קלט:</strong> ציוצים מסווגים מ-<code>process_issue_scoring</code> + סגל ח"כים (MK Roster: <code>mk</code>)</div>
               </div>
             </div>
           </div>
@@ -1417,32 +1397,42 @@
             <svg class="flow-arrow-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
           </div>
 
-          <!-- Layer 4: Serving & Web App -->
+          <!-- Layer 4: Serving, Utilities & Application -->
           <div class="flow-layer layer-serving">
             <div class="flow-layer-header">
               <div class="flow-layer-title" style="color: var(--emerald-light);">
-                <span>🚀 4. שכבת ה-API והאפליקציה (Serving & UI Layer)</span>
+                <span>🚀 4. שכבת ה-API, האפליקציה וכלי ניתוח (Serving, Web App & Utilities)</span>
               </div>
-              <span class="layer-badge badge-serving">Serving / Web App</span>
+              <span class="layer-badge badge-serving">Serving / App / Tools</span>
             </div>
             <div class="flow-nodes-container">
-              <div class="flow-node" id="node-ui_app" data-streams="x knesset votes anchors">
+              <div class="flow-node" id="node-ui_app" data-streams="x knesset anchors">
                 <div class="node-header">
                   <div class="node-title">⚡ FastAPI Backend Server</div>
                   <span class="node-rerun-badge">רענן מטמון</span>
                 </div>
                 <div class="node-desc">שרת Python רזה המבצע שאילתות מול BigQuery עם מטמון TTL ל-30 דקות.</div>
                 <div class="node-code">src/mk_tracking/ui_app/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> קורא ממאגרי BigQuery שהופקו ע"י <code>process_summaries</code>, <code>process_bill_issues</code>, <code>process_issue_scoring</code></div>
+                <div class="node-source"><strong>מקור קלט:</strong> סגל ח"כים (MK Roster מ-<code>mk</code>) ומאגרי סיכומים שהופקו ע"י <code>process_summaries</code></div>
               </div>
 
-              <div class="flow-node" id="node-ui_frontend" data-streams="x knesset votes anchors">
+              <div class="flow-node" id="node-ui_frontend" data-streams="x knesset anchors">
                 <div class="node-header">
                   <div class="node-title">💻 React 19 + Vite UI</div>
                 </div>
                 <div class="node-desc">ממשק משתמש מתקדם: לוח מפלגות, מגירת ח"כ, ראיות וציר הצבעות.</div>
                 <div class="node-code">ui/</div>
                 <div class="node-source"><strong>מקור קלט:</strong> מקבל נתונים משרת ה-Backend <code>ui_app</code> (FastAPI REST API)</div>
+              </div>
+
+              <div class="flow-node" id="node-analyze_votes" data-streams="knesset">
+                <div class="node-header">
+                  <div class="node-title">📊 ניתוח הצבעות (Utility)</div>
+                  <span class="node-rerun-badge">כלי עזר (Offline)</span>
+                </div>
+                <div class="node-desc">כלי עצמאי לניתוח וייצוא אירועי הצבעה וסיווג מחלוקות.</div>
+                <div class="node-code">src/mk_tracking/analyze_votes/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> שאילתות ניתוח מול <code>vote_event</code> ו-<code>mk_vote</code> ב-BigQuery</div>
               </div>
             </div>
           </div>
@@ -1470,6 +1460,7 @@
                 <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
                   <li><strong>נתוני כנסת:</strong> שואבת נתוני חברי כנסת (<code>mk</code>), מפלגות, שיוכים (<code>mk_affiliation</code>), תפקידים (<code>mk_role</code>), הצעות חוק (<code>bill</code>), יוזמי חוקים (<code>bill_author</code>), אירועי הצבעה (<code>vote_event</code>), והצבעות פרטניות (<code>mk_vote</code>) מ-Open Knesset / Knesset OData API.</li>
                   <li><strong>נתוני רשתות חברתיות:</strong> קולטת ציוצים מטוויטר/X אל טבלת <code>social_post</code> המשויכים לחשבונות <code>mk_social_account</code>.</li>
+                  <li><strong>תחזוקת סגל ח"כים וחשבונות רשת:</strong> המערכת נעזרת ב-3 סקריפטי עדכון מנהלתיים: <code>db/apply_current_mk_roster.bq.sql</code> (לעדכון סגל 120 הח"כים מקובץ TSV סגור), <code>src/mk_tracking/collect_x/populate_mk_accounts.py</code> (מיפוי חשבונות X מ-Wikidata), ו-<code>src/mk_tracking/collect_x/insert_missing_mks.py</code> (הכנסת חשבונות X חדשים שזוהו).</li>
                 </ul>
               </div>
               <div>
@@ -2077,10 +2068,8 @@
     }
 
     /* Interactive Data Lineage & Re-Run Tracing JS */
-    function setStreamFilter(streamType, btn) {
+    function resetFlowchart() {
       document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
       const banner = document.getElementById('rerunBanner');
       if (banner) banner.style.display = 'none';
 
@@ -2090,33 +2079,23 @@
         const badge = node.querySelector('.node-rerun-badge');
         if (badge) badge.style.display = 'none';
       });
-
-      if (streamType === 'all') return;
-
-      nodes.forEach(node => {
-        const streams = (node.getAttribute('data-streams') || '').split(' ');
-        if (streams.includes(streamType)) {
-          node.classList.add('is-highlighted');
-        } else {
-          node.classList.add('is-dimmed');
-        }
-      });
     }
 
     function simulateReRun(triggerId, btn) {
-      document.querySelectorAll('.lineage-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      const isAlreadyActive = btn.classList.contains('active');
 
+      // Reset all nodes to default view
+      resetFlowchart();
+
+      // If clicking an already active button, toggle it OFF (return to default view)
+      if (isAlreadyActive) {
+        return;
+      }
+
+      btn.classList.add('active');
       const banner = document.getElementById('rerunBanner');
       const bannerText = document.getElementById('rerunBannerText');
       if (banner) banner.style.display = 'flex';
-
-      const nodes = document.querySelectorAll('.flow-node');
-      nodes.forEach(node => {
-        node.classList.remove('is-dimmed', 'is-highlighted', 'is-rerun-source', 'is-rerun-target');
-        const badge = node.querySelector('.node-rerun-badge');
-        if (badge) badge.style.display = 'none';
-      });
 
       let affectedIds = [];
       let stepBadges = {};
@@ -2132,25 +2111,28 @@
           'node-ui_app': 'רענן מטמון'
         };
       } else if (triggerId === 'collect_knesset') {
-        bannerText.innerHTML = '<strong>עדכון נתוני כנסת:</strong> מקור השינוי הוא <code>collect_knesset</code> (הורדו חוקים וח"כים חדשים אל <code>bill</code> ו-<code>mk</code>). יש להריץ: <strong>[1] process_bill_issues</strong> לקטלוג חוקים והצבעות, ו-<strong>[2] process_summaries</strong> במידה ונוספו/עודכנו חברי כנסת.';
-        affectedIds = ['node-collect_knesset', 'node-table-mk', 'node-table-bill', 'node-process_bill_issues', 'node-process_summaries', 'node-ui_app'];
+        bannerText.innerHTML = '<strong>עדכון נתוני כנסת:</strong> מקור השינוי הוא <code>collect_knesset</code> (הורדו חוקים והצבעות חדשים אל <code>bill</code> ו-<code>vote_event</code>). בצינור הראשי יש להריץ: <strong>[1] process_bill_issues</strong> ➔ <strong>[2] process_summaries</strong>. כלי העזר <strong>analyze_votes</strong> זמין להרצה במידת הצורך.';
+        affectedIds = ['node-collect_knesset', 'node-table-mk', 'node-table-bill', 'node-process_bill_issues', 'node-process_summaries', 'node-ui_app', 'node-analyze_votes'];
         stepBadges = {
           'node-collect_knesset': 'מקור הרצה',
           'node-process_bill_issues': '1. קטלוג חוקים',
           'node-process_summaries': '2. סיכום עמדות',
-          'node-ui_app': 'רענן מטמון'
+          'node-ui_app': 'רענן מטמון',
+          'node-analyze_votes': 'ניתן לנתח מחדש'
         };
       } else if (triggerId === 'anchors') {
-        bannerText.innerHTML = '<strong>עדכון עוגנים סמנטיים:</strong> שונתה טבלת <code>issue_anchor</code>. <em>(אין צורך בוקטוריזציית ציוצים מחדש ב-process_embeddings!)</em>. יש להריץ בלבד: <strong>[1] process_issue_scoring</strong> ➔ <strong>[2] process_summaries</strong>.';
-        affectedIds = ['node-table-anchors', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
+        bannerText.innerHTML = '<strong>עדכון נושאים או עוגנים סמנטיים:</strong> שונתה הגדרת הנושאים (<code>issue</code>) או טבלת העוגנים (<code>issue_anchor</code>). <em>(אין צורך בוקטוריזציית ציוצים מחדש ב-process_embeddings!)</em>. יש להריץ: <strong>[1] process_bill_issues</strong> (סיווג חוקים מחדש) ➔ <strong>[2] process_issue_scoring</strong> (סיווג ציוצים מחדש) ➔ <strong>[3] process_summaries</strong> (ניתוח עמדות AI מחדש).';
+        affectedIds = ['node-table-anchors', 'node-process_bill_issues', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
         stepBadges = {
-          'node-table-anchors': 'עוגנים שונו',
-          'node-process_issue_scoring': '1. סיווג מחדש',
-          'node-process_summaries': '2. סיכום מחדש',
+          'node-table-anchors': 'נושאים/עוגנים שונו',
+          'node-process_bill_issues': '1. סיווג חוקים מחדש',
+          'node-process_issue_scoring': '2. סיווג ציוצים מחדש',
+          'node-process_summaries': '3. סיכום עמדות מחדש',
           'node-ui_app': 'רענן מטמון'
         };
       }
 
+      const nodes = document.querySelectorAll('.flow-node');
       nodes.forEach(node => {
         if (affectedIds.includes(node.id)) {
           if (node.id.startsWith('node-collect_') || node.id === 'node-table-anchors') {

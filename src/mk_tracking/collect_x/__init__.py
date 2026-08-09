@@ -1,6 +1,6 @@
 import sys
 
-from cli import run_cli
+from mk_tracking.collect_x.cli import run_cli
 
 
 def main() -> None:
