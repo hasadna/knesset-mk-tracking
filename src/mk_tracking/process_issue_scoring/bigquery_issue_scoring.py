@@ -970,3 +970,65 @@ def upload_issue_scores(
     job = client.query(merge, location=location)
     job.result()
     return int(job.num_dml_affected_rows or 0)
+
+
+def main() -> None:
+    import argparse
+    import os
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="Compute multilingual issue-similarity scores for tweets and push to BigQuery."
+    )
+    parser.add_argument(
+        "--project",
+        type=str,
+        default=os.environ.get("GOOGLE_CLOUD_PROJECT"),
+        help="GCP Project ID",
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="mk_tracking",
+        help="BigQuery dataset ID (default: mk_tracking)",
+    )
+    parser.add_argument(
+        "--bigquery-location",
+        type=str,
+        default="US",
+        help="BigQuery dataset location (default: US)",
+    )
+    parser.add_argument(
+        "--softmax-temperature",
+        type=float,
+        default=DEFAULT_SOFTMAX_TEMPERATURE,
+        help=f"Softmax temperature calibration (default: {DEFAULT_SOFTMAX_TEMPERATURE})",
+    )
+    parser.add_argument(
+        "--anchor-definitions-file",
+        type=Path,
+        default=Path("data/seed/issue_anchors.json"),
+        help="Path to issue_anchors.json",
+    )
+    parser.add_argument(
+        "--anchor-embedding-file",
+        type=Path,
+        default=Path("src/mk_tracking/process_embeddings/issue_anchor_embeddings.npz"),
+        help="Path to issue_anchor_embeddings.npz",
+    )
+
+    args = parser.parse_args()
+    project = args.project or os.environ.get("GOOGLE_CLOUD_PROJECT")
+    if not project:
+        print("Error: GOOGLE_CLOUD_PROJECT environment variable or --project flag must be set.", file=sys.stderr)
+        sys.exit(1)
+
+    client = bigquery.Client(project=project, location=args.bigquery_location)
+    issues = fetch_issues(client, project=project, dataset=args.dataset)
+    anchors = fetch_issue_anchors(client, project=project, dataset=args.dataset)
+
+    print(f"Loaded {len(issues)} policy issues and {len(anchors)} semantic anchors from BigQuery.")
+
+
+if __name__ == "__main__":
+    main()

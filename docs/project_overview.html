@@ -577,6 +577,22 @@
       color: var(--cyan-light);
     }
 
+    .node-dep-box {
+      font-size: 0.76rem;
+      color: var(--amber-light);
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      margin-top: 0.35rem;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .node-dep-box strong {
+      color: var(--amber);
+    }
+
     .flow-connector {
       display: flex;
       align-items: center;
@@ -1268,34 +1284,68 @@
 
         <div class="flowchart-grid">
           
-          <!-- Layer 1: Data Collection -->
+          <!-- Layer 1: Data Collection & Sources -->
           <div class="flow-layer layer-collection">
             <div class="flow-layer-header">
               <div class="flow-layer-title" style="color: var(--cyan-light);">
-                <span>📥 1. שכבת איסוף נתונים (Data Collection Layer)</span>
+                <span>📥 1. שכבת איסוף נתונים ומקורות מידע (Data Ingestion & Sources Layer)</span>
               </div>
-              <span class="layer-badge badge-collection">Ingestion / Collect</span>
+              <span class="layer-badge badge-collection">Ingestion / Sources</span>
             </div>
-            <div class="flow-nodes-container">
+            <div class="flow-nodes-container" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+              
               <div class="flow-node" id="node-collect_knesset" data-streams="knesset">
                 <div class="node-header">
-                  <div class="node-title">🏛️ נתוני כנסת גולמיים</div>
-                  <span class="node-rerun-badge">מקור הרצה</span>
+                  <div class="node-title">🏛️ איסוף נתוני כנסת</div>
+                  <span class="node-rerun-badge">צינור ראשי</span>
                 </div>
-                <div class="node-desc">שאיבת ח"כים, מפלגות, תפקידים, חוקים והצבעות מ-OData API.</div>
+                <div class="node-desc">שאיבת ח"כים, מפלגות, חוקים והצבעות מ-OData API.</div>
                 <div class="node-code">src/mk_tracking/collect_knesset/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> OData API של פורטל הכנסת / כנסת פתוחה</div>
+                <div class="node-source"><strong>מקור קלט:</strong> Open Knesset / Knesset OData API</div>
+              </div>
+
+              <div class="flow-node" id="node-roster_script" data-streams="knesset">
+                <div class="node-header">
+                  <div class="node-title">📜 עדכון שיוך ח"כים (MK Party Roster)</div>
+                  <span class="node-rerun-badge">סקריפט עצמאי</span>
+                </div>
+                <div class="node-desc">עדכון מפת שיוך 120 חברי הכנסת המכהנים וסיעותיהם ב-mk (לפי קובץ TSV).</div>
+                <div class="node-code">db/apply_current_mk_roster.bq.sql</div>
+                <div class="node-source"><strong>מקור קלט:</strong> <code>data/seed/current_mk_roster_*.tsv</code></div>
               </div>
 
               <div class="flow-node" id="node-collect_x" data-streams="x">
                 <div class="node-header">
-                  <div class="node-title">🐦 נתוני רשת X (טוויטר)</div>
-                  <span class="node-rerun-badge">מקור הרצה</span>
+                  <div class="node-title">🐦 איסוף ציוצי X (טוויטר)</div>
+                  <span class="node-rerun-badge">צינור ראשי</span>
                 </div>
                 <div class="node-desc">קליטת ציוצים מחשבונות ח"כים פעילים בזמן אמת.</div>
                 <div class="node-code">src/mk_tracking/collect_x/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> Twitter/X REST API v2 <em>(מוזן מטבלאות <code>mk & mk_social_account</code>)</em></div>
+                <div class="node-source"><strong>מקור קלט:</strong> Twitter/X REST API v2</div>
+                <div class="node-dep-box"><strong>תלות זהויות:</strong> <code>mk_social_account</code> ➔ <code>mk</code> (קורא משתמשי X של ח"כים פעילים)</div>
               </div>
+
+              <div class="flow-node" id="node-accounts_script" data-streams="x knesset">
+                <div class="node-header">
+                  <div class="node-title">🔗 מיפוי חשבונות X לח"כים</div>
+                  <span class="node-rerun-badge">צינור איסוף</span>
+                </div>
+                <div class="node-desc">איתור ומיפוי חשבונות X של ח"כים ב-Wikidata, ניתוח ובדיקה ידנית, והזנה ל-DB.</div>
+                <div class="node-code">src/mk_tracking/collect_x_accounts/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> Wikidata SPARQL</div>
+                <div class="node-dep-box"><strong>תלות זהויות:</strong> דורש <code>mk</code> ב-DB (פרופיל הח"כ חייב להיטען תחילה)</div>
+              </div>
+
+              <div class="flow-node" id="node-seeds_taxonomy" data-streams="anchors x">
+                <div class="node-header">
+                  <div class="node-title">🎯 הגדרת נושאים ועוגנים</div>
+                  <span class="node-rerun-badge">קבצי Seed</span>
+                </div>
+                <div class="node-desc">טקסונומיית 7 הנושאים ו-56 העוגנים הסמנטיים (עברית/אנגלית/ערבית).</div>
+                <div class="node-code">data/seed/</div>
+                <div class="node-source"><strong>מקור קלט:</strong> <code>issues.tsv</code> & <code>issue_anchors.json</code></div>
+              </div>
+
             </div>
           </div>
 
@@ -1312,11 +1362,16 @@
               </div>
               <span class="layer-badge badge-staging">BigQuery Raw Staging</span>
             </div>
-            <div class="flow-nodes-container" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+            <div class="flow-nodes-container" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
               <div class="flow-node" id="node-table-mk" data-streams="knesset" style="border-style: dashed;">
-                <div class="node-title" style="font-size: 0.85rem;"><code>mk & mk_social_account</code></div>
-                <div class="node-desc">סגל ח"כים (MK Roster), סיעות וחשבונות רשת</div>
-                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code> + סקריפטי עדכון: <code>db/apply_current_mk_roster.bq.sql</code> (קובץ TSV סגל), <code>populate_mk_accounts.py</code> (Wikidata) ו-<code>insert_missing_mks.py</code></div>
+                <div class="node-title" style="font-size: 0.85rem;"><code>mk</code></div>
+                <div class="node-desc">פרופילי ח"כים ושיוכים מפלגתיים</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_knesset</code> + <code>apply_current_mk_roster</code></div>
+              </div>
+              <div class="flow-node" id="node-table-social-account" data-streams="x knesset" style="border-style: dashed;">
+                <div class="node-title" style="font-size: 0.85rem;"><code>mk_social_account</code></div>
+                <div class="node-desc">חשבונות X של ח"כים</div>
+                <div class="node-source"><strong>מוזן מ:</strong> <code>collect_x_accounts</code> (Wikidata)</div>
               </div>
               <div class="flow-node" id="node-table-social" data-streams="x" style="border-style: dashed;">
                 <div class="node-title" style="font-size: 0.85rem;"><code>social_post</code></div>
@@ -1387,7 +1442,7 @@
                 </div>
                 <div class="node-desc">ניתוח ראיות וייצור סיכום עמדה מנומק ב-Gemini 3.6 Flash.</div>
                 <div class="node-code">src/mk_tracking/process_summaries/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> ציוצים מסווגים מ-<code>process_issue_scoring</code> + סגל ח"כים (MK Roster: <code>mk</code>)</div>
+                <div class="node-source"><strong>מקור קלט:</strong> ציוצים מסווגים מ-<code>process_issue_scoring</code> + זהויות ח"כים (<code>mk</code>)</div>
               </div>
             </div>
           </div>
@@ -1413,7 +1468,7 @@
                 </div>
                 <div class="node-desc">שרת Python רזה המבצע שאילתות מול BigQuery עם מטמון TTL ל-30 דקות.</div>
                 <div class="node-code">src/mk_tracking/ui_app/</div>
-                <div class="node-source"><strong>מקור קלט:</strong> סגל ח"כים (MK Roster מ-<code>mk</code>) ומאגרי סיכומים שהופקו ע"י <code>process_summaries</code></div>
+                <div class="node-source"><strong>מקור קלט:</strong> זהויות ח"כים (מ-<code>mk</code>) ומאגרי סיכומים שהופקו ע"י <code>process_summaries</code></div>
               </div>
 
               <div class="flow-node" id="node-ui_frontend" data-streams="x knesset anchors">
@@ -1460,7 +1515,7 @@
                 <ul style="color: var(--text-secondary); margin-right: 1.25rem; margin-top: 0.5rem; line-height: 1.8;">
                   <li><strong>נתוני כנסת:</strong> שואבת נתוני חברי כנסת (<code>mk</code>), מפלגות, שיוכים (<code>mk_affiliation</code>), תפקידים (<code>mk_role</code>), הצעות חוק (<code>bill</code>), יוזמי חוקים (<code>bill_author</code>), אירועי הצבעה (<code>vote_event</code>), והצבעות פרטניות (<code>mk_vote</code>) מ-Open Knesset / Knesset OData API.</li>
                   <li><strong>נתוני רשתות חברתיות:</strong> קולטת ציוצים מטוויטר/X אל טבלת <code>social_post</code> המשויכים לחשבונות <code>mk_social_account</code>.</li>
-                  <li><strong>תחזוקת סגל ח"כים וחשבונות רשת:</strong> המערכת נעזרת ב-3 סקריפטי עדכון מנהלתיים: <code>db/apply_current_mk_roster.bq.sql</code> (לעדכון סגל 120 הח"כים מקובץ TSV סגור), <code>src/mk_tracking/collect_x/populate_mk_accounts.py</code> (מיפוי חשבונות X מ-Wikidata), ו-<code>src/mk_tracking/collect_x/insert_missing_mks.py</code> (הכנסת חשבונות X חדשים שזוהו).</li>
+                  <li><strong>תחזוקת שיוך מפלגתי וחשבונות רשת:</strong> המערכת נעזרת ב-<code>db/apply_current_mk_roster.bq.sql</code> (לעדכון מפת שיוך 120 הח"כים המכהנים ב-<code>mk</code> מקובץ TSV סגור) ובצינור <code>src/mk_tracking/collect_x_accounts/</code> (למיפוי ועדכון חשבונות X מ-Wikidata).</li>
                 </ul>
               </div>
               <div>
@@ -2122,9 +2177,10 @@
         };
       } else if (triggerId === 'anchors') {
         bannerText.innerHTML = '<strong>עדכון נושאים או עוגנים סמנטיים:</strong> שונתה הגדרת הנושאים (<code>issue</code>) או טבלת העוגנים (<code>issue_anchor</code>). <em>(אין צורך בוקטוריזציית ציוצים מחדש ב-process_embeddings!)</em>. יש להריץ: <strong>[1] process_bill_issues</strong> (סיווג חוקים מחדש) ➔ <strong>[2] process_issue_scoring</strong> (סיווג ציוצים מחדש) ➔ <strong>[3] process_summaries</strong> (ניתוח עמדות AI מחדש).';
-        affectedIds = ['node-table-anchors', 'node-process_bill_issues', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
+        affectedIds = ['node-seeds_taxonomy', 'node-table-anchors', 'node-process_bill_issues', 'node-process_issue_scoring', 'node-process_summaries', 'node-ui_app'];
         stepBadges = {
-          'node-table-anchors': 'נושאים/עוגנים שונו',
+          'node-seeds_taxonomy': 'מקור שינוי',
+          'node-table-anchors': 'עוגנים/נושאים שונו',
           'node-process_bill_issues': '1. סיווג חוקים מחדש',
           'node-process_issue_scoring': '2. סיווג ציוצים מחדש',
           'node-process_summaries': '3. סיכום עמדות מחדש',
@@ -2135,7 +2191,7 @@
       const nodes = document.querySelectorAll('.flow-node');
       nodes.forEach(node => {
         if (affectedIds.includes(node.id)) {
-          if (node.id.startsWith('node-collect_') || node.id === 'node-table-anchors') {
+          if (node.id.startsWith('node-collect_') || ['node-roster_script', 'node-accounts_script', 'node-seeds_taxonomy', 'node-table-anchors', 'node-table-social-account'].includes(node.id)) {
             node.classList.add('is-rerun-source');
           } else {
             node.classList.add('is-rerun-target');

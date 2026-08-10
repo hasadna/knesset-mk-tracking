@@ -5,7 +5,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import docx
-import fitz
+import pymupdf as fitz
 from google import genai
 from google.cloud import bigquery, storage
 from google.genai import types
