@@ -1,0 +1,26 @@
+# Local PostgreSQL for development.
+#
+#   docker compose up -d
+#   psql "$DATABASE_URL" -f db/schema.sql
+#   uv run python db/load_from_sqlite.py mk_tracking.db "$DATABASE_URL"
+#   MK_WORK_DATA_BACKEND=postgres DATABASE_URL=... uv run mkwork --port 1234
+#
+# DATABASE_URL=postgresql://mk:mk@127.0.0.1:5432/mk_tracking
+#
+# No Docker? Any PostgreSQL 16 works — `brew install postgresql@16` on macOS.
+# The application only needs DATABASE_URL; it does not care how you got one.
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: mk
+      POSTGRES_PASSWORD: mk
+      POSTGRES_DB: mk_tracking
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mk -d mk_tracking"]
+      interval: 5s
+      retries: 10
+volumes:
+  pgdata:
