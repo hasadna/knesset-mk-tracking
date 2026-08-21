@@ -607,6 +607,7 @@ class BigQueryUploader:
             title = ve.get("votetitle") or ve.get("votesubject") or "הצבעת מליאה"
             voted_at = ve.get("votedatetime")
             draft_uri = ve.get("draft_document_uri")
+            knesset_bill_id = ve.get("knesset_bill_id")
 
             raw_records.append({
                 "external_key": f"odata:vote:{vid}",
@@ -614,6 +615,7 @@ class BigQueryUploader:
                 "title_he": title.strip(),
                 "voted_at": voted_at,
                 "draft_document_uri": draft_uri.replace("\\", "/").strip() if draft_uri else None,
+                "knesset_bill_id": int(knesset_bill_id) if knesset_bill_id else None,
             })
 
         # Deduplicate records by external_key FIRST to avoid duplicate document tasks
@@ -679,17 +681,27 @@ class BigQueryUploader:
         merge_sql = f"""
         MERGE `{self.dataset_ref}.vote_event` T
         USING (
-          SELECT * FROM `{self.dataset_ref}.{stg_name}`
-          QUALIFY ROW_NUMBER() OVER (PARTITION BY external_key ORDER BY external_key) = 1
+          SELECT
+            stg.external_key,
+            stg.event_kind,
+            stg.title_he,
+            stg.draft_document_uri,
+            stg.voted_at,
+            b.id AS bill_id
+          FROM `{self.dataset_ref}.{stg_name}` stg
+          LEFT JOIN `{self.dataset_ref}.bill` b
+            ON b.knesset_bill_id = CAST(stg.knesset_bill_id AS INT64)
+          QUALIFY ROW_NUMBER() OVER (PARTITION BY stg.external_key ORDER BY stg.external_key) = 1
         ) S
         ON T.external_key = S.external_key
         WHEN MATCHED THEN
           UPDATE SET 
             T.title_he = S.title_he,
-            T.draft_document_uri = COALESCE(S.draft_document_uri, T.draft_document_uri)
+            T.draft_document_uri = COALESCE(S.draft_document_uri, T.draft_document_uri),
+            T.bill_id = COALESCE(S.bill_id, T.bill_id)
         WHEN NOT MATCHED THEN
-          INSERT (id, external_key, event_kind, title_he, draft_document_uri, voted_at)
-          VALUES (GENERATE_UUID(), S.external_key, S.event_kind, S.title_he, S.draft_document_uri, CAST(S.voted_at AS TIMESTAMP));
+          INSERT (id, external_key, event_kind, title_he, draft_document_uri, voted_at, bill_id)
+          VALUES (GENERATE_UUID(), S.external_key, S.event_kind, S.title_he, S.draft_document_uri, CAST(S.voted_at AS TIMESTAMP), S.bill_id);
         """
 
         self._execute_merge_sql(merge_sql, entity_name="vote_event")
@@ -1078,6 +1090,11 @@ def fetch_over_vote_events(
     (e.g., .pdf, .docx, and .tif versions of the same draft).
     Using 'DISTINCT ON (v.id)' ensures PostgreSQL returns exactly 1 unique vote event row,
     selecting the newest primary draft document (ORDER BY v.id DESC, d.lastupdateddate DESC).
+
+    NOTE ON v.itemid:
+    kns_plenumvote.itemid is the Knesset bill id the vote event belongs to (the same key
+    kns_documentbill.billid and kns_bill.id use). It is selected as `knesset_bill_id` so the
+    vote_event MERGE can resolve `vote_event.bill_id` from `bill.knesset_bill_id`.
     """
     logger.info(f"Fetching vote events from Over API (limit={limit}, start_date={start_date})...")
     date_clause = f" AND v.votedatetime >= '{start_date}'" if start_date else ""
@@ -1087,6 +1104,7 @@ def fetch_over_vote_events(
         v.votedatetime, 
         v.votetitle, 
         v.votesubject,
+        v.itemid AS knesset_bill_id,
         d.filepath AS draft_document_uri
     FROM kns_plenumvote v
     LEFT JOIN kns_documentbill d ON v.itemid = d.billid AND d.grouptypeid IN (1, 2, 4)
