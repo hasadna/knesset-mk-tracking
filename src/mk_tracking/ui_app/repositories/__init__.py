@@ -3,5 +3,6 @@
 from .base import Repository
 from .bigquery_repository import BigQueryRepository
 from .json_repository import JsonRepository
+from .postgres_repository import PostgresRepository
 
-__all__ = ["BigQueryRepository", "JsonRepository", "Repository"]
+__all__ = ["BigQueryRepository", "JsonRepository", "PostgresRepository", "Repository"]

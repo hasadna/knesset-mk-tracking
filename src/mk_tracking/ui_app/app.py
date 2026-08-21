@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .api import router
-from .repositories import BigQueryRepository, JsonRepository, Repository
+from .repositories import BigQueryRepository, JsonRepository, PostgresRepository, Repository
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_ROOT = PROJECT_ROOT / "ui"
@@ -71,6 +71,8 @@ def configured_repository() -> Repository:
     backend = os.getenv("MK_WORK_DATA_BACKEND", "bigquery").lower()
     if backend == "json":
         return JsonRepository(UI_ROOT)
+    if backend == "postgres":
+        return PostgresRepository(os.environ["DATABASE_URL"])
     if backend != "bigquery":
         raise ValueError(f"unsupported MK_WORK_DATA_BACKEND: {backend}")
     return BigQueryRepository(
