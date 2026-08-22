@@ -80,7 +80,6 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
             ${{ github.ref == 'refs/heads/main' && format('{0}:latest', env.IMAGE) || '' }}
-          context: "{{defaultContext}}:server"
           cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache-latest
           cache-to: ${{ github.ref == 'refs/heads/main' && format('type=registry,ref={0}:buildcache-latest,mode=max', env.IMAGE) || '' }}
 
