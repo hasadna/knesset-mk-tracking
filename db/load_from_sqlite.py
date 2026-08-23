@@ -239,6 +239,84 @@ def load_table(
     return loaded, available, stats
 
 
+def defer_foreign_keys(target: psycopg.Connection, schema: str) -> Callable[[], None]:
+    """Stop foreign keys being enforced during the load; return the undo.
+
+    The export cannot satisfy every key while it is being loaded — `vote_event`
+    is missing entirely, and a handful of social_post rows reference MKs that
+    are not in the roster (see db/DATA_QUALITY.md). Even the keys declared
+    NOT VALID are enforced for *new* inserts, so they bite here.
+
+    `SET session_replication_role = replica` is the cheap way to do this, but it
+    is superuser-only, and a managed PostgreSQL instance will not grant that.
+    The fallback drops the keys and puts them back, which any table owner may do.
+    """
+    try:
+        target.execute("SET session_replication_role = replica")
+        return lambda: target.execute("SET session_replication_role = DEFAULT")
+    except psycopg.errors.InsufficientPrivilege:
+        # The failed SET aborted the transaction; start a clean one.
+        target.rollback()
+
+    constraints = target.execute(
+        """
+        SELECT c.conrelid::regclass::text, c.conname, pg_get_constraintdef(c.oid)
+        FROM pg_constraint c
+        JOIN pg_namespace n ON n.oid = c.connamespace
+        WHERE c.contype = 'f' AND n.nspname = %s
+        """,
+        (schema,),
+    ).fetchall()
+    print(f"not superuser — dropping {len(constraints)} foreign keys for the load")
+    for table, name, _definition in constraints:
+        target.execute(f'ALTER TABLE {table} DROP CONSTRAINT "{name}"')
+
+    def restore() -> None:
+        # Re-added NOT VALID so this does not rescan a million rows; each is then
+        # validated below, which reports precisely which ones the data satisfies.
+        for table, name, definition in constraints:
+            clause = definition if definition.endswith("NOT VALID") else f"{definition} NOT VALID"
+            target.execute(f'ALTER TABLE {table} ADD CONSTRAINT "{name}" {clause}')
+        print(f"restored {len(constraints)} foreign keys")
+
+    return restore
+
+
+def validate_foreign_keys(target: psycopg.Connection, schema: str) -> None:
+    """Promote every NOT VALID key the loaded data actually satisfies.
+
+    Leaves the rest NOT VALID and names them, so the end state matches what
+    db/DATA_QUALITY.md documents rather than silently tolerating everything.
+    """
+    pending = target.execute(
+        """
+        SELECT c.conrelid::regclass::text, c.conname
+        FROM pg_constraint c
+        JOIN pg_namespace n ON n.oid = c.connamespace
+        WHERE c.contype = 'f' AND NOT c.convalidated AND n.nspname = %s
+        """,
+        (schema,),
+    ).fetchall()
+    if not pending:
+        return
+    unsatisfied: list[str] = []
+    for table, name in pending:
+        try:
+            # Each validation gets its own savepoint. A plain rollback here would
+            # discard every validation already made in this transaction, silently
+            # reverting keys that the data does satisfy — the count would then
+            # describe attempts rather than the state left behind.
+            with target.transaction():
+                target.execute(f'ALTER TABLE {table} VALIDATE CONSTRAINT "{name}"')
+        except psycopg.errors.ForeignKeyViolation:
+            unsatisfied.append(f"{table}.{name}")
+    target.commit()
+    validated = len(pending) - len(unsatisfied)
+    print(f"\nvalidated {validated} of {len(pending)} foreign keys")
+    for name in unsatisfied:
+        print(f"  still NOT VALID: {name} — see db/pending_constraints.sql")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sqlite_path")
@@ -272,7 +350,7 @@ def main() -> int:
     total_loaded = 0
     repair_log: dict[str, int] = {}
     with psycopg.connect(database_url) as target:
-        target.execute("SET session_replication_role = replica")  # defer FK checks
+        restore_foreign_keys = defer_foreign_keys(target, schema)
         for table in LOAD_ORDER:
             loaded, available, stats = load_table(
                 source, target, table, args.batch_size, repairs, post_remap, schema
@@ -286,7 +364,7 @@ def main() -> int:
             elif loaded < available:
                 note = f"{available - loaded:,} dropped (see notes)"
             print(f"{table:<36} {loaded:>10,} {available:>10,}  {note}")
-        target.execute("SET session_replication_role = DEFAULT")
+        restore_foreign_keys()
         target.commit()
 
         print("-" * 78)
@@ -308,6 +386,8 @@ def main() -> int:
                 if stats["dropped"]:
                     print(f"  {table}: dropped {stats['dropped']:,} rows whose mk_id "
                           f"could not be resolved")
+
+        validate_foreign_keys(target, schema)
 
         with target.cursor() as check:
             check.execute(
