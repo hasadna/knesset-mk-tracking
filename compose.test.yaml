@@ -1,0 +1,58 @@
+# ============================================================================
+# PostgreSQL server for the test suite
+# ============================================================================
+# Disposable counterpart to docker-compose.yml. That one is the development
+# database: port 5432, a persistent volume, and you load the SQLite export into
+# it. This one is built from db/schema.sql alone, lives in RAM, and is thrown
+# away — so tests never depend on a 934 MB import that is not in the repo.
+#
+#   docker compose -f compose.test.yaml up -d --wait   # start (waits for the schema)
+#   uv run pytest -q tests/                            # DB tests skip if this is down
+#   docker compose -f compose.test.yaml down -v        # stop and discard
+#
+# DATABASE_URL=postgresql://mk:mk@127.0.0.1:55432/mk_tracking
+#
+# Same credentials as docker-compose.yml, different port: switching a command
+# between the dev and test database is a one-character change.
+# ============================================================================
+name: mk-tracking-test
+
+services:
+  db:
+    # 16 matches docker-compose.yml. db/schema.sql needs 15+ (security_invoker views).
+    image: postgres:16
+    environment:
+      # Throwaway local credentials. No real data, loopback-only.
+      POSTGRES_USER: mk
+      POSTGRES_PASSWORD: mk
+      POSTGRES_DB: mk_tracking
+    ports:
+      # 55432, not 5432, so the test server and the dev server can run at once.
+      - "127.0.0.1:55432:5432"
+    volumes:
+      # Applied once, when the empty data directory is initialised. db/seed.sql
+      # is deliberately NOT mounted: it is the v2 taxonomy seed (name_he/name_en,
+      # bigint ids) and does not fit the v6 `issue` table.
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/10-schema.sql:ro
+    tmpfs:
+      - /var/lib/postgresql/data
+    # Durability is pointless for a database that lives in RAM and is discarded
+    # after the run; this buys a noticeably faster suite.
+    command:
+      - postgres
+      - -c
+      - fsync=off
+      - -c
+      - full_page_writes=off
+      - -c
+      - synchronous_commit=off
+    healthcheck:
+      # Not just pg_isready: schema.sql runs *after* the server accepts
+      # connections, so readiness means the tables exist, not that a port is open.
+      test:
+        - CMD-SHELL
+        - pg_isready -U mk -d mk_tracking -q && psql -U mk -d mk_tracking -tAc "select to_regclass('mk_tracking.mk') is not null" | grep -q '^t$$'
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s

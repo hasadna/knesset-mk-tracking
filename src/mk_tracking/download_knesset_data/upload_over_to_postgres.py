@@ -2,25 +2,24 @@
 """
 Upload Over Knesset Vote Data to PostgreSQL
 ===========================================
-The PostgreSQL counterpart of `upload_over_to_bigquery.py`. It queries vote events and
+Ingests the public Knesset vote record into PostgreSQL. It queries vote events and
 MK voting records from the Over Knesset API (https://www.over.org.il/api/knesset-db/sql)
 and upserts them into the PostgreSQL `mk_tracking` schema defined by `db/schema.sql`.
 
-The Over API fetch layer is shared, not duplicated: `fetch_over_vote_events`,
-`fetch_over_vote_results` and `map_vote_result` are imported from the BigQuery module,
-and the reviewed source-id crosswalk comes from `vote_identity`. Only the write half
-differs — BigQuery `MERGE` becomes PostgreSQL `INSERT ... ON CONFLICT DO UPDATE` against
-the real UNIQUE constraints (`vote_event.external_key`, `mk_vote (mk_id, vote_event_id)`).
+`fetch_over_vote_events`, `fetch_over_vote_results` and `map_vote_result` come from
+`over_api`, and the reviewed source-id crosswalk from `vote_identity`. Upserts run as
+`INSERT ... ON CONFLICT DO UPDATE` against the real UNIQUE constraints
+(`vote_event.external_key`, `mk_vote (mk_id, vote_event_id)`).
 
 Scope:
   Tables populated: vote_event, mk_vote.
   `party`, `mk`, `bill` and `mk_affiliation` are already loaded in PostgreSQL from a
   separate export and are deliberately NOT re-synced here. Adding one later means a
-  `fetch_over_*` import plus one more `load_and_upsert_*` method in PostgresUploader —
-  every method follows the same stage-then-upsert shape.
+  fetch function in `over_api` plus one more `load_and_upsert_*` method in
+  PostgresUploader — every method follows the same stage-then-upsert shape.
 
 No Google Cloud:
-  There is no GCS document upload and no `bigquery` import. `draft_document_uri` keeps
+  There is no GCS document upload. `draft_document_uri` keeps
   whatever HTTP URL the Over API returned (backslashes normalized to forward slashes).
   Object storage is out of scope for the PostgreSQL migration.
 
@@ -59,13 +58,13 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
 import psycopg
 
-from mk_tracking.download_knesset_data.upload_over_to_bigquery import (
+from mk_tracking.db_config import ConfigError, resolve_dsn, resolve_schema
+from mk_tracking.download_knesset_data.over_api import (
     fetch_over_vote_events,
     fetch_over_vote_results,
     map_vote_result,
@@ -367,21 +366,24 @@ def report_vote_coverage(connection: psycopg.Connection, schema: str, label: str
     )
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(
         description="Upload Vote Events and MK Votes from the Over API into PostgreSQL."
     )
     parser.add_argument(
         "--database-url",
         type=str,
-        default=os.environ.get("DATABASE_URL"),
-        help="PostgreSQL connection URI (default: $DATABASE_URL env var)",
+        default=None,
+        help="PostgreSQL connection URI. Falls back to $DATABASE_URL, then the PG* "
+             "variables. Prefer the environment: an argument here puts the password "
+             "in `ps` output.",
     )
     parser.add_argument(
         "--schema",
         type=str,
-        default=DEFAULT_SCHEMA,
-        help=f"PostgreSQL schema holding the tables (default: {DEFAULT_SCHEMA})",
+        default=None,
+        help=f"PostgreSQL schema holding the tables. Falls back to "
+             f"$MK_TRACKING_SCHEMA, then {DEFAULT_SCHEMA}.",
     )
     parser.add_argument(
         "--dry-run",
@@ -409,11 +411,14 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.database_url:
-        parser.error("--database-url is required (or set $DATABASE_URL)")
+    try:
+        database_url = resolve_dsn(args.database_url)
+        schema = resolve_schema(args.schema)
+    except ConfigError as error:
+        parser.error(str(error))
 
     logger.info(
-        f"Starting upload to PostgreSQL schema `{args.schema}` "
+        f"Starting upload to PostgreSQL schema `{schema}` "
         f"(dry_run={args.dry_run}, start_date={args.start_date}, limit_votes={args.limit_votes})"
     )
 
@@ -435,11 +440,32 @@ def main():
         len(resolved_vote_results),
     )
 
-    with psycopg.connect(args.database_url) as connection:
-        uploader = PostgresUploader(
-            connection, schema=args.schema, dry_run=args.dry_run
+    # delete_orphan_mk_votes() below removes every mk_vote row whose event was not
+    # in this fetch. That is correct when the fetch succeeded and destructive when
+    # it did not: an empty result would delete the entire table and commit. The API
+    # layer now raises rather than returning empty, so reaching here with nothing is
+    # not expected — but the cost of being wrong is the whole vote record, so refuse
+    # explicitly rather than relying on that.
+    if not vote_events:
+        logger.error(
+            "the Over API returned no vote events. Refusing to continue: the "
+            "orphan cleanup would delete every existing mk_vote row. Nothing was "
+            "written. Re-run when the API is reachable."
         )
-        report_vote_coverage(connection, args.schema, "before")
+        return 1
+    if not resolved_vote_results:
+        logger.error(
+            "the Over API returned no vote results for the %d events fetched. "
+            "Refusing to continue for the same reason. Nothing was written.",
+            len(vote_events),
+        )
+        return 1
+
+    with psycopg.connect(database_url) as connection:
+        uploader = PostgresUploader(
+            connection, schema=schema, dry_run=args.dry_run
+        )
+        report_vote_coverage(connection, schema, "before")
 
         # 2. Vote events, the prerequisite for every mk_vote foreign key.
         uploader.load_and_upsert_vote_events(vote_events)
@@ -450,9 +476,10 @@ def main():
         uploader.delete_orphan_mk_votes()
         uploader.load_and_upsert_mk_votes(resolved_vote_results)
 
-        report_vote_coverage(connection, args.schema, "after")
+        report_vote_coverage(connection, schema, "after")
         uploader.finish()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

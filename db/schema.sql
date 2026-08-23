@@ -18,7 +18,10 @@
 CREATE SCHEMA IF NOT EXISTS mk_tracking;
 SET search_path TO mk_tracking, public;
 
-CREATE EXTENSION IF NOT EXISTS pg_trgm;  -- substring search over Hebrew text
+-- Installed into public, not the schema above: an extension is database-wide,
+-- so putting it in the app schema would tie `gin_trgm_ops` to that one schema
+-- and make DROP SCHEMA ... CASCADE take the extension with it.
+CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;  -- substring search over Hebrew text
 
 -- ---------------------------------------------------------------------------
 -- Enum types — closed value sets, verified against the export

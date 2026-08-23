@@ -18,9 +18,25 @@ of them become enforced at the point of the Postgres migration.
 
 ## Blocking
 
-| Finding | Scale | Handling |
+None. The one blocking finding was resolved on 2026-08-23 — see below.
+
+## Resolved
+
+| Finding | Scale | Resolution |
 |---|---|---|
-| `vote_event` and `vote_event_issue` are absent from the export | 907,210 `mk_vote` rows reference 34,159 missing events | Re-export both tables. Until then `v_said_vs_did` and `v_vote_event_issues` return 0 rows and `mk_vote`'s foreign key cannot be created. |
+| `vote_event` and `vote_event_issue` are absent from the export | 907,210 `mk_vote` rows referenced 34,159 missing events | Fixed by the over.org.il ingestion, step 3 of `db/bootstrap.py`. It loaded 36,162 vote events (11,811 carrying a resolved `bill_id`), deleted the 907,210 orphaned rows and replaced them with 831,369 fetched from the API. `mk_vote`'s foreign key is now created and validated. `v_said_vs_did` returns 576 rows and `v_vote_event_issues` 475, both previously 0. |
+
+The replacement is not row-for-row: `mk_vote` went from 907,210 to 831,369. The
+crosswalk resolves vote identities only for the 120 *current* MKs, so the API
+fetch covers those and the export's votes by former MKs are not re-fetched.
+`SELECT count(DISTINCT mk_id) FROM mk_vote` is 120, against 1,186 MKs in the
+roster. If the historical votes matter, they need a wider crosswalk — the
+mechanism is `db/vote_mkid_crosswalk.json`, rebuilt by
+`build_vote_mkid_crosswalk.py`. A further 221 fetched rows were dropped as
+referencing an event the fetch did not return.
+
+`vote_event_issue` is still empty. It is populated by issue-tagging the events,
+which is a pipeline step, not part of this ingestion.
 
 ## Repaired automatically by the loader
 

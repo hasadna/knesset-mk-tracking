@@ -1,9 +1,10 @@
 """PostgreSQL-backed repository for the MK explorer.
 
-A straight port of :mod:`bigquery_repository`; the two are meant to be diffed.
-Dialect differences are confined to the SQL: ``QUALIFY ROW_NUMBER() = 1``
-becomes ``DISTINCT ON``, ``ARRAY_AGG(STRUCT(...))`` becomes ``jsonb_agg`` /
-``array_agg`` of ``jsonb_build_object``, and ``@param`` becomes ``%(param)s``.
+The only live backend. It began as a straight port of the BigQuery repository,
+which has since been removed (see git history for the side-by-side); the SQL
+still carries the marks of that port: ``QUALIFY ROW_NUMBER() = 1`` became
+``DISTINCT ON``, ``ARRAY_AGG(STRUCT(...))`` became ``jsonb_agg`` / ``array_agg``
+of ``jsonb_build_object``, and ``@param`` became ``%(param)s``.
 """
 
 from __future__ import annotations
@@ -19,7 +20,8 @@ import psycopg
 from cachetools import TTLCache, cachedmethod
 from psycopg.rows import dict_row
 
-SCHEMA_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
+from ...db_config import SCHEMA_PATTERN
+
 MK_KEY_PATTERN = re.compile(r"^mk-(\d+)$")
 POST_KEY_PATTERN = re.compile(r"^x:[A-Za-z0-9_.-]{1,50}:(\d{1,30})$")
 TOPIC_RELEVANCE_THRESHOLD = 0.20

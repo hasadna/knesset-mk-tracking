@@ -1,3 +1,9 @@
+
+# TODO(postgres-migration): this module still reads and/or writes BigQuery.
+# BigQuery is retired as the serving layer (see src/mk_tracking/ui_app/app.py);
+# PostgreSQL is the store. This path has no PostgreSQL counterpart yet, so it is
+# excluded from run_daily_pipeline.sh unless MK_TRACKING_ALLOW_BIGQUERY=1.
+# Porting it is the remaining work in the migration.
 from __future__ import annotations
 
 import re

@@ -5,6 +5,7 @@
 -- checked while legacy rows are left alone. Run the matching block once the
 -- underlying data is repaired. Each is a no-op if it already passes.
 -- Measured against mk_tracking.db, 2026-08-21 — see db/DATA_QUALITY.md.
+-- Status re-checked against the loaded database on 2026-08-23.
 -- ============================================================================
 
 -- (1) social_post.mk_id -> mk
@@ -19,14 +20,32 @@
 --     column holding the numeric id, so they cannot be resolved from the export.
 --     Add that column upstream, backfill, then:
 -- ALTER TABLE mk_tracking.social_post VALIDATE CONSTRAINT social_post_account_fk;
+--
+--     Measured on the loaded database 2026-08-23: after the loader's nulling,
+--     exactly 9 rows still violate this — and they are the *same 9 rows* as (1),
+--     verified by intersecting the two sets. So (1) and (2) are one repair, not
+--     two: fix those 9 posts and both keys can be validated. The 597 backfill is
+--     only needed to recover the account links, not to satisfy the constraint.
 
--- (3) mk_vote.vote_event_id -> vote_event
---     vote_event and vote_event_issue are absent from the export, so all 907,210
---     vote rows reference 34,159 events that do not exist locally. Once both
---     tables are re-exported and loaded, add the key for real:
--- ALTER TABLE mk_tracking.mk_vote
---   ADD CONSTRAINT mk_vote_event_fk
---   FOREIGN KEY (vote_event_id) REFERENCES mk_tracking.vote_event (id) ON DELETE CASCADE;
+-- (3) mk_vote.vote_event_id -> vote_event   [RESOLVED 2026-08-23]
+--     Was blocking: vote_event and vote_event_issue are absent from the export,
+--     so every mk_vote row referenced an event that existed nowhere.
+--
+--     Resolved by the over.org.il ingestion, which db/bootstrap.py runs as step
+--     3. It loaded 36,162 vote events, deleted the 907,210 orphaned rows and
+--     replaced them with 831,369 fetched from the API. The key below now holds
+--     and has been applied:
+--
+--       ALTER TABLE mk_tracking.mk_vote
+--         ADD CONSTRAINT mk_vote_event_fk
+--         FOREIGN KEY (vote_event_id) REFERENCES mk_tracking.vote_event (id) ON DELETE CASCADE;
+--
+--     It is applied here rather than in schema.sql on purpose. The loader runs
+--     with session_replication_role = replica, so re-loading the export would
+--     re-insert the orphaned rows *unchecked* and leave the constraint quietly
+--     violated. Running the vote step after every load — which bootstrap.py does
+--     by default — is what keeps it true; `--skip-votes` after a fresh load does
+--     not, so drop the constraint first in that case.
 
 -- (4) mk.slug uniqueness
 --     6 slugs are shared by genuinely different MKs (e.g. אלי-כהן covers

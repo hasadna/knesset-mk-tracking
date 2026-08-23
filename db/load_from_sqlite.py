@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Load the SQLite export of the BigQuery dataset into PostgreSQL.
 
-    uv run python db/load_from_sqlite.py mk_tracking.db "$DATABASE_URL"
+    DATABASE_URL=... uv run python db/load_from_sqlite.py mk_tracking.db
 
 Apply db/schema.sql first; this script only moves data. It is idempotent at the
 table level (each table is truncated before load) and safe to re-run.
@@ -22,6 +22,8 @@ import sys
 from typing import Any, Callable
 
 import psycopg
+
+from mk_tracking.db_config import ConfigError, describe, resolve_dsn, resolve_schema
 
 EMBEDDING_DIMS = 3072
 
@@ -175,6 +177,7 @@ def load_table(
     batch_size: int,
     repairs: dict[str, str] | None = None,
     post_remap: dict[str, str] | None = None,
+    schema: str = "mk_tracking",
 ) -> tuple[int, int, dict[str, int]]:
     stats: dict[str, int] = {"repaired": 0, "dropped": 0, "nulled_account": 0,
                              "remapped": 0, "collapsed": 0}
@@ -184,9 +187,9 @@ def load_table(
     converters = [converter_for(column) for column in columns]
     available = int(source.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0])
 
-    target.execute(f"TRUNCATE mk_tracking.{table} CASCADE")
+    target.execute(f"TRUNCATE {schema}.{table} CASCADE")
     quoted = ", ".join(f'"{c}"' for c in columns)
-    copy_sql = f"COPY mk_tracking.{table} ({quoted}) FROM STDIN"
+    copy_sql = f"COPY {schema}.{table} ({quoted}) FROM STDIN"
 
     mk_index = columns.index("mk_id") if table == "social_post" else -1
     account_index = columns.index("account_id") if table == "social_post" else -1
@@ -239,9 +242,26 @@ def load_table(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("sqlite_path")
-    parser.add_argument("database_url")
+    parser.add_argument(
+        "database_url",
+        nargs="?",
+        help="PostgreSQL connection URI. Falls back to $DATABASE_URL, then the PG* "
+             "variables — see src/mk_tracking/db_config.py. Prefer the environment: an argument "
+             "here puts the password in `ps` output.",
+    )
     parser.add_argument("--batch-size", type=int, default=2000)
+    parser.add_argument(
+        "--schema", help="schema holding the tables (default: mk_tracking)"
+    )
     args = parser.parse_args()
+
+    try:
+        database_url = resolve_dsn(args.database_url)
+        schema = resolve_schema(args.schema)
+    except ConfigError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 2
+    print(f"target: {describe(database_url)}")
 
     source = sqlite3.connect(f"file:{args.sqlite_path}?mode=ro", uri=True)
     repairs = handle_to_mk_id(source) if sqlite_has_table(source, "mk_social_account") else {}
@@ -251,11 +271,11 @@ def main() -> int:
 
     total_loaded = 0
     repair_log: dict[str, int] = {}
-    with psycopg.connect(args.database_url) as target:
+    with psycopg.connect(database_url) as target:
         target.execute("SET session_replication_role = replica")  # defer FK checks
         for table in LOAD_ORDER:
             loaded, available, stats = load_table(
-                source, target, table, args.batch_size, repairs, post_remap
+                source, target, table, args.batch_size, repairs, post_remap, schema
             )
             total_loaded += loaded
             if any(stats.values()):
@@ -290,7 +310,9 @@ def main() -> int:
                           f"could not be resolved")
 
         with target.cursor() as check:
-            check.execute("SELECT count(*) FROM mk_tracking.social_post WHERE embedding IS NOT NULL")
+            check.execute(
+                f"SELECT count(*) FROM {schema}.social_post WHERE embedding IS NOT NULL"
+            )
             print(f"\nposts carrying an embedding: {check.fetchone()[0]:,}")
     source.close()
     return 0

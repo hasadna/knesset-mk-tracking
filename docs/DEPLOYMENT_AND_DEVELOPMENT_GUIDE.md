@@ -55,9 +55,16 @@ npm run dev
 ```
 
 ### Environment Variables
-* `MK_WORK_DATA_BACKEND`: `bigquery` (default) or `json` (offline mock mode)
-* `GOOGLE_CLOUD_PROJECT`: Your GCP project ID (required)
-* `MK_WORK_BIGQUERY_DATASET`: Dataset name (`mk_tracking`)
+* `MK_WORK_DATA_BACKEND`: `postgres` (default) or `json` (offline mock mode).
+  There is no longer a `bigquery` option — setting it raises at startup.
+* `DATABASE_URL`: PostgreSQL connection string. **Required** for the default
+  backend; the service fails to start without it. The discrete `PGHOST` /
+  `PGPORT` / `PGUSER` / `PGPASSWORD` / `PGDATABASE` / `PGSSLMODE` variables work
+  instead — see `src/mk_tracking/db_config.py` for the resolution order.
+* `MK_TRACKING_SCHEMA`: schema holding the tables (default `mk_tracking`).
+
+`GOOGLE_CLOUD_PROJECT` and `MK_WORK_BIGQUERY_DATASET` no longer affect serving.
+They are still read by the unported pipeline steps described in the README.
 
 ---
 
@@ -98,8 +105,24 @@ gcloud run deploy mk-tracking-web \
   --image us-central1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/mk-tracking-repo/mk-tracking:latest \
   --region us-central1 \
   --project=$GOOGLE_CLOUD_PROJECT \
-  --set-env-vars GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT,MK_WORK_BIGQUERY_DATASET=mk_tracking
+  --set-env-vars MK_WORK_DATA_BACKEND=postgres \
+  --set-secrets DATABASE_URL=mk-tracking-database-url:latest
 ```
+
+`DATABASE_URL` carries a password, so it belongs in Secret Manager rather than
+`--set-env-vars`, where it would be readable from the revision description.
+Create it once with:
+
+```bash
+printf 'postgresql://USER:PASSWORD@HOST:5432/mk_tracking?sslmode=require' \
+  | gcloud secrets create mk-tracking-database-url --data-file=- \
+      --project=$GOOGLE_CLOUD_PROJECT
+```
+
+Grant the Cloud Run service account `roles/secretmanager.secretAccessor` on it.
+A managed PostgreSQL instance normally requires `sslmode=require`. Deploying
+without `DATABASE_URL` produces a revision that fails to start, with
+`no database configured` in the logs.
 
 #### Step 5: Verify Deployment
 Inspect the deployed service URL and active revision:

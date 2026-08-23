@@ -78,15 +78,14 @@ For טלי גוטליב specifically, the source contains 304 July 2026 vote res
 from July 6 through July 28. These resolve from source ID `34379` to canonical
 ID `30860` in the dry-run path.
 
-The dedicated historical repair command defaults to the 89 identities whose
-source and canonical IDs differ, avoiding a redundant download of the 31
-same-ID histories already present:
+The dedicated historical repair command (`backfill_mk_votes`) was removed with
+the PostgreSQL migration — see git history. Its work now happens inline in the
+main ingestion, which resolves every vote through this crosswalk and reconciles
+all 120 reviewed identities on each run:
 
-```powershell
-uv run python -m mk_tracking.download_knesset_data.backfill_mk_votes --apply
+```bash
+uv run python -m mk_tracking.download_knesset_data.upload_over_to_postgres
 ```
-
-`--all-reviewed` is available for a later full reconciliation of all 120.
 
 The one-time production merge is captured in
 `db/backfill_vote_mkids_2026-07-31.bq.sql`. It asserts the complete 485,724-row
