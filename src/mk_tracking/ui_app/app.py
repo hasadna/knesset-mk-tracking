@@ -12,13 +12,13 @@ from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from ..db_config import ConfigError, resolve_dsn, resolve_schema
 from .api import router
-from .repositories import BigQueryRepository, JsonRepository, Repository
+from .repositories import JsonRepository, PostgresRepository, Repository
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 UI_ROOT = PROJECT_ROOT / "ui"
 ROOT = UI_ROOT
-DEFAULT_GCP_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT")
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -68,15 +68,27 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 def configured_repository() -> Repository:
-    backend = os.getenv("MK_WORK_DATA_BACKEND", "bigquery").lower()
+    """Pick the serving backend. PostgreSQL is the only live one.
+
+    `json` remains for offline UI work against a checked-in fixture; it reads
+    ui/data/analysis.json and talks to no database. There is deliberately no
+    BigQuery option and no fallback to one — Postgres is the serving layer.
+    """
+    backend = os.getenv("MK_WORK_DATA_BACKEND", "postgres").lower()
     if backend == "json":
         return JsonRepository(UI_ROOT)
-    if backend != "bigquery":
-        raise ValueError(f"unsupported MK_WORK_DATA_BACKEND: {backend}")
-    return BigQueryRepository(
-        project=os.getenv("GOOGLE_CLOUD_PROJECT", DEFAULT_GCP_PROJECT),
-        dataset=os.getenv("MK_WORK_BIGQUERY_DATASET", "mk_tracking"),
-    )
+    if backend != "postgres":
+        raise ValueError(
+            f"unsupported MK_WORK_DATA_BACKEND: {backend!r} (expected 'postgres' or 'json')"
+        )
+    try:
+        conninfo = resolve_dsn()
+        schema = resolve_schema()
+    except ConfigError as error:
+        # Same resolution the db/ scripts use, so a database configured for the
+        # loader also serves — including the discrete PG* variables.
+        raise RuntimeError(str(error)) from None
+    return PostgresRepository(conninfo, schema=schema)
 
 
 def create_app(repository: Repository | None = None) -> FastAPI:

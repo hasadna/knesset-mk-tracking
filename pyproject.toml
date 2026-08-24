@@ -14,6 +14,7 @@ dependencies = [
     "google-cloud-bigquery>=3.42.2",
     "google-genai>=2.15.0",
     "numpy>=2.4.6",
+    "psycopg[binary]>=3.2",
     "scikit-learn>=1.9.0",
     "tqdm>=4.70,<5",
     "uvicorn>=0.35,<1",
@@ -32,6 +33,11 @@ mk-tracking = "mk_tracking.cli:main"
 mk-summary = "mk_tracking.summary_creation.cli:main"
 mk-work = "mk_tracking.ui_app:main"
 mkwork = "mk_tracking.ui_app:main"
+
+[tool.pytest.ini_options]
+markers = [
+    "pg: needs the PostgreSQL test server (docker compose -f compose.test.yaml up -d --wait)",
+]
 
 [tool.ruff]
 target-version = "py311"

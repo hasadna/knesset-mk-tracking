@@ -1,5 +1,10 @@
 """Transform Twitter exports and create Gemini embeddings."""
 
+# TODO(postgres-migration): the Google Cloud inference APIs (Vertex AI / Gemini
+# embeddings and summarisation) are deliberately OUT OF SCOPE for the PostgreSQL
+# migration and are left as they are. Only the data store moved; the model calls
+# did not. Revisit separately.
+
 from __future__ import annotations
 
 import json

@@ -1,98 +1,112 @@
 -- ============================================================================
--- mk-tracking — database schema (PostgreSQL / Supabase) — v2 REFERENCE ONLY
--- ⚠️  NOT the deployed schema. Deployed = BigQuery v3 (db/schema.bq.sql); this
--- file was not updated for the v3 spec change (see docs/DATABASE_DESIGN.md §10).
+-- mk-tracking — database schema (PostgreSQL) — v6
 -- ============================================================================
--- See docs/DATABASE_DESIGN.md for the narrative design and rationale.
---
 -- Apply with:  psql "$DATABASE_URL" -f db/schema.sql
--- or as a Supabase migration (supabase db push).
--- Requires PostgreSQL 15+ (uses UNIQUE NULLS NOT DISTINCT, security_invoker views).
+-- Requires PostgreSQL 15+ (gen_random_uuid is built in from 13; security_invoker
+-- views from 15).
 --
--- Design notes:
---  * bigint identity PKs for internal FKs; MKs also carry a URL `slug`.
---  * Enums used for stable, closed value sets (platform, language, stance, ...).
---    Extend with:  ALTER TYPE <name> ADD VALUE '<new>';
---  * "Current" for time-bounded rows (affiliation, role, account) means
---    `end_date is null` / `is_active` — there is deliberately no separate
---    is_current flag to drift out of sync.
---  * All ingestion writes are idempotent upserts on natural keys (see the
---    ingestion contract in the design doc). quote dedups on a stored text hash.
---  * Every serving table is public-read via RLS; writes are service-role only
---    (the sentiment/ingestion team). See the RLS section at the bottom.
+-- Derived from db/schema.bq.sql (the BigQuery v3-v6 schema) and validated
+-- against the live SQLite export (mk_tracking.db, 2026-08-21). Where the export
+-- showed the data cannot yet satisfy a constraint, the constraint is declared
+-- NOT VALID rather than dropped: new writes are checked, legacy rows are not,
+-- and `ALTER TABLE ... VALIDATE CONSTRAINT ...` closes it once cleaned.
+-- See db/DATA_QUALITY.md for the measured findings.
+--
+-- The v2 design reference this file replaces is kept at db/schema.v2.reference.sql.
 -- ============================================================================
 
-create extension if not exists pg_trgm;  -- substring/keyword search over Hebrew text
+CREATE SCHEMA IF NOT EXISTS mk_tracking;
+SET search_path TO mk_tracking, public;
+
+-- Installed into public, not the schema above: an extension is database-wide,
+-- so putting it in the app schema would tie `gin_trgm_ops` to that one schema
+-- and make DROP SCHEMA ... CASCADE take the extension with it.
+CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;  -- substring search over Hebrew text
 
 -- ---------------------------------------------------------------------------
--- Enum types
+-- Enum types — closed value sets, verified against the export
 -- ---------------------------------------------------------------------------
-create type platform      as enum ('twitter', 'facebook', 'instagram', 'telegram', 'tiktok', 'gov_il', 'other');
-create type content_lang  as enum ('he', 'en', 'ar', 'other');
-create type stance        as enum ('supports', 'opposes', 'mixed', 'unclear');
-create type quote_source  as enum ('social_post', 'knesset_speech', 'interview', 'other');
-create type role_type     as enum (
-  'prime_minister', 'minister', 'deputy_minister',
-  'knesset_speaker', 'deputy_speaker',
-  'committee_chair', 'committee_member',
-  'faction_chair', 'coalition', 'opposition', 'other'
-);
-create type vote_value    as enum ('for', 'against', 'abstain', 'absent');
-create type relation_kind as enum ('same_party', 'similar_positions', 'notable', 'ally', 'rival');
-create type issue_signal  as enum ('support', 'oppose', 'neutral', 'mixed');
+CREATE TYPE platform        AS ENUM ('twitter','facebook','instagram','telegram','tiktok','gov_il','other');
+CREATE TYPE content_lang    AS ENUM ('he','en','ar','other');
+CREATE TYPE anchor_lang     AS ENUM ('he','en','ar');
+CREATE TYPE summary_quality AS ENUM ('strong','partial','none');
+CREATE TYPE vote_value      AS ENUM ('for','against','abstain','absent');
+CREATE TYPE mapping_method  AS ENUM ('manual','model','rule');
+CREATE TYPE event_kind      AS ENUM ('plenum','committee');
+CREATE TYPE run_status      AS ENUM ('running','completed','failed');
+CREATE TYPE role_type       AS ENUM (
+  'prime_minister','minister','deputy_minister','knesset_speaker','deputy_speaker',
+  'committee_chair','committee_member','faction_chair','coalition','opposition','other');
+CREATE TYPE relation_kind   AS ENUM ('same_party','similar_positions','notable','ally','rival');
 
--- ---------------------------------------------------------------------------
--- Housekeeping trigger: keep updated_at honest
--- ---------------------------------------------------------------------------
-create function touch_updated_at() returns trigger language plpgsql as $$
-begin
-  new.updated_at := now();
-  return new;
-end $$;
+-- Keep updated_at honest.
+CREATE FUNCTION touch_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN new.updated_at := now(); RETURN new; END $$;
 
 -- ---------------------------------------------------------------------------
 -- Reference / dimension tables
 -- ---------------------------------------------------------------------------
 
-create table party (
-  id          bigint generated always as identity primary key,
-  name_he     text not null,
-  name_en     text,
-  short_name  text,
-  is_current  boolean not null default true,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+-- NOTE: name_he is deliberately NOT unique. The export contains 6 repeated
+-- party names (הליכוד, העבודה, יהדות התורה, יש עתיד, ישראל ביתנו, רע"ם) that are
+-- distinct rows in the source data.
+CREATE TABLE party (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name_he    text NOT NULL,
+  name_en    text,
+  short_name text,
+  is_current boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
 );
-create trigger party_touch before update on party
-  for each row execute function touch_updated_at();
+CREATE INDEX party_name_he_idx ON party (name_he);
 
-create table committee (
-  id                   bigint generated always as identity primary key,
-  knesset_committee_id integer unique,          -- external Open Knesset / OData id
-  name_he              text not null,
+CREATE TABLE committee (
+  id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  knesset_committee_id integer UNIQUE,
+  name_he              text NOT NULL,
   name_en              text
 );
 
--- Predetermined policy / issue areas. Seeded once (see db/seed.sql), referenced everywhere.
-create table issue (
-  id             bigint generated always as identity primary key,
-  slug           text unique not null,          -- stable machine key, e.g. 'housing'
-  name_he        text not null,
-  name_en        text,
-  description_he text,
-  description_en text,
-  sort_order     integer not null default 0
+CREATE TABLE issue (
+  id                                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug                              text NOT NULL UNIQUE,
+  name                              text NOT NULL,
+  description                       text,
+  prompt_for_social_post_similarity text,
+  prompt_for_bill_similarity        text,
+  rating_scale                      jsonb,
+  sort_order                        integer NOT NULL DEFAULT 0
+);
+
+-- Eight multilingual anchors per issue; curated and embedded once.
+CREATE TABLE issue_anchor (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  issue_id        uuid NOT NULL REFERENCES issue (id) ON DELETE CASCADE,
+  anchor_index    integer NOT NULL CHECK (anchor_index BETWEEN 1 AND 8),
+  language        anchor_lang NOT NULL,
+  text            text NOT NULL,
+  embedding       real[],
+  embedding_model text NOT NULL,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (issue_id, anchor_index),
+  CONSTRAINT issue_anchor_embedding_dim
+    CHECK (embedding IS NULL OR cardinality(embedding) = 3072)
 );
 
 -- ---------------------------------------------------------------------------
--- Member of Knesset (MK) and time-bounded affiliations / roles
+-- MK, affiliations, roles, accounts
 -- ---------------------------------------------------------------------------
 
-create table mk (
-  id                bigint generated always as identity primary key,
-  knesset_member_id integer unique,             -- external hook to Open Knesset / OData / votes
-  slug              text unique not null,        -- URL key, e.g. 'yair-lapid'
-  full_name_he      text not null,
+-- NOTE: slug is NOT unique. The export contains 6 slug collisions between
+-- genuinely different MKs who share a Hebrew name (e.g. אלי-כהן covers
+-- knesset_member_id 755 and 30083). Disambiguating them is a product decision;
+-- until then the URL key is ambiguous. knesset_member_id IS unique.
+CREATE TABLE mk (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  knesset_member_id integer UNIQUE,
+  slug              text NOT NULL,
+  full_name_he      text NOT NULL,
   full_name_en      text,
   photo_url         text,
   birth_date        date,
@@ -100,329 +114,326 @@ create table mk (
   home_city         text,
   bio_he            text,
   bio_en            text,
-  is_current        boolean not null default true,
-  created_at        timestamptz not null default now(),
-  updated_at        timestamptz not null default now()
+  is_current        boolean NOT NULL DEFAULT true,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  updated_at        timestamptz NOT NULL DEFAULT now()
 );
-create trigger mk_touch before update on mk
-  for each row execute function touch_updated_at();
+CREATE INDEX mk_slug_idx       ON mk (slug);
+CREATE INDEX mk_is_current_idx ON mk (is_current) WHERE is_current;
+CREATE INDEX mk_name_trgm_idx  ON mk USING gin (full_name_he gin_trgm_ops);
 
--- Party membership over time. Seed the current row now; back-fill history later
--- with no schema change. end_date null == currently in this party.
-create table mk_affiliation (
-  id         bigint generated always as identity primary key,
-  mk_id      bigint not null references mk(id) on delete cascade,
-  party_id   bigint not null references party(id),
+CREATE TABLE mk_affiliation (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id      uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  party_id   uuid NOT NULL REFERENCES party (id),
   start_date date,
-  end_date   date                                 -- null == current
+  end_date   date,
+  UNIQUE (mk_id, party_id),
+  CONSTRAINT mk_affiliation_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date)
 );
+CREATE INDEX mk_affiliation_current_idx ON mk_affiliation (mk_id) WHERE end_date IS NULL;
 
--- Offices and parliamentary roles over time (minister, committee chair, coalition/opposition, ...).
-create table mk_role (
-  id           bigint generated always as identity primary key,
-  mk_id        bigint not null references mk(id) on delete cascade,
-  role_type    role_type not null,
-  title_he     text,                             -- free text, e.g. 'שר האוצר'
+CREATE TABLE mk_role (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id        uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  role_type    role_type NOT NULL,
+  title_he     text,
   title_en     text,
-  committee_id bigint references committee(id),  -- when the role is committee-scoped
+  committee_id uuid REFERENCES committee (id),
   start_date   date,
-  end_date     date                               -- null == current
+  end_date     date
 );
+CREATE INDEX mk_role_current_idx ON mk_role (mk_id) WHERE end_date IS NULL;
 
--- Registry of MK social accounts (seeded from the account list, independent of
--- whether posts were collected yet). Drives the "platforms used" filter and
--- tells the ingestion pipeline where to look.
-create table mk_social_account (
-  id         bigint generated always as identity primary key,
-  mk_id      bigint not null references mk(id) on delete cascade,
-  platform   platform not null,
-  handle     text,                                -- e.g. 'yairlapid'
-  url        text,
-  is_active  boolean not null default true,       -- account closed/suspended => false
-  verified   boolean not null default false,      -- did a human confirm this is really the MK
-  unique (mk_id, platform, handle)
+CREATE TABLE mk_social_account (
+  id       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id    uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  platform platform NOT NULL,
+  handle   text NOT NULL,
+  url      text,
+  is_active boolean NOT NULL DEFAULT true,
+  verified  boolean NOT NULL DEFAULT false,
+  UNIQUE (platform, handle)
 );
+CREATE INDEX mk_social_account_mk_idx ON mk_social_account (mk_id) WHERE is_active;
 
 -- ---------------------------------------------------------------------------
--- Raw social media posts (the evidence quotes are extracted from)
+-- Posts and issue tagging
 -- ---------------------------------------------------------------------------
 
-create table social_post (
-  id               bigint generated always as identity primary key,
-  mk_id            bigint not null references mk(id) on delete cascade,
-  account_id       bigint references mk_social_account(id),
-  platform         platform not null,
-  platform_post_id text,                          -- native id on the platform
+-- mk_id and account_id foreign keys are declared NOT VALID: the export contains
+-- 36 posts whose mk_id has no matching mk row, and 606 whose account_id has no
+-- matching account. New writes are checked; run VALIDATE CONSTRAINT once the
+-- legacy rows are reconciled (see db/pending_constraints.sql).
+CREATE TABLE social_post (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id            uuid NOT NULL,
+  account_id       uuid,
+  platform         platform NOT NULL,
+  platform_post_id text NOT NULL,
   url              text,
   posted_at        timestamptz,
   text             text,
+  embedding        real[],
   language         content_lang,
-  engagement       jsonb not null default '{}',   -- {likes, shares, comments, views, ...}
-  is_deleted       boolean not null default false,-- deleted-post tracking (politwoops-style)
+  engagement       jsonb,
+  is_deleted       boolean NOT NULL DEFAULT false,
   fetched_at       timestamptz,
-  created_at       timestamptz not null default now(),
-  unique (platform, platform_post_id)
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (platform, platform_post_id),
+  CONSTRAINT social_post_embedding_dim
+    CHECK (embedding IS NULL OR cardinality(embedding) = 3072)
+);
+ALTER TABLE social_post ADD CONSTRAINT social_post_mk_fk
+  FOREIGN KEY (mk_id) REFERENCES mk (id) NOT VALID;
+ALTER TABLE social_post ADD CONSTRAINT social_post_account_fk
+  FOREIGN KEY (account_id) REFERENCES mk_social_account (id) NOT VALID;
+CREATE INDEX social_post_mk_posted_idx ON social_post (mk_id, posted_at DESC);
+CREATE INDEX social_post_posted_idx    ON social_post (posted_at DESC);
+CREATE INDEX social_post_text_trgm_idx ON social_post USING gin (text gin_trgm_ops);
+
+-- A post can touch several issues. Of 70,164 rows in the export only 3,808
+-- clear confidence >= 0.2, which is the threshold the serving layer filters on
+-- — hence the partial index.
+CREATE TABLE post_issue (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id             uuid NOT NULL REFERENCES social_post (id) ON DELETE CASCADE,
+  issue_id            uuid NOT NULL REFERENCES issue (id) ON DELETE CASCADE,
+  confidence          numeric(4,3) CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1),
+  is_concrete_promise boolean NOT NULL DEFAULT false,
+  model_version       text,
+  UNIQUE (post_id, issue_id)
+);
+CREATE INDEX post_issue_relevant_idx ON post_issue (issue_id, post_id) WHERE confidence >= 0.2;
+CREATE INDEX post_issue_post_idx     ON post_issue (post_id);
+
+CREATE TABLE tweet_cluster (
+  model_version   text    NOT NULL,
+  cluster_id      integer NOT NULL,
+  centroid        real[],
+  title_he        text NOT NULL,
+  description_he  text NOT NULL,
+  cluster_size    integer NOT NULL,
+  is_garbage      boolean NOT NULL DEFAULT false,
+  embedding_model text NOT NULL,
+  summary_model   text NOT NULL,
+  k               integer NOT NULL,
+  random_state    integer NOT NULL,
+  n_init          integer NOT NULL,
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (model_version, cluster_id),
+  CONSTRAINT tweet_cluster_centroid_dim
+    CHECK (centroid IS NULL OR cardinality(centroid) = 3072)
 );
 
 -- ---------------------------------------------------------------------------
--- Quotes / statements  (the taggable unit the sentiment team produces)
+-- Per-(MK, issue) opinion summaries
 -- ---------------------------------------------------------------------------
 
-create table quote (
-  id                  bigint generated always as identity primary key,
-  mk_id               bigint not null references mk(id) on delete cascade,  -- denormalized for fast per-MK reads
-  source_post_id      bigint references social_post(id) on delete set null, -- null if from a speech/interview
-  source_type         quote_source not null default 'social_post',
-  text                text not null,
-  text_hash           text generated always as (md5(text)) stored,  -- dedup key for idempotent re-ingestion
-  language            content_lang not null,       -- per-quote he/en/ar/other tag + filter
-  said_at             timestamptz,                 -- when stated; primary sort key on the timeline
-  is_concrete_promise boolean not null default false, -- the true/false policy-declaration flag
-  context             text,
-  model_version       text,                        -- provenance: which pipeline/model tagged this
-  created_at          timestamptz not null default now(),
-  -- Idempotency: re-running the pipeline upserts instead of duplicating.
-  -- NULLS NOT DISTINCT so speech/interview quotes (null source_post_id) dedup too.
-  constraint quote_dedup unique nulls not distinct (mk_id, source_post_id, text_hash)
+CREATE TABLE summary_generation_run (
+  id            uuid PRIMARY KEY,
+  mk_id         uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  model_version text NOT NULL,
+  started_at    timestamptz NOT NULL,
+  completed_at  timestamptz,
+  elapsed_ms    bigint,
+  status        run_status NOT NULL,
+  issue_count   integer,
+  post_count    integer,
+  error_message text
+);
+CREATE INDEX summary_generation_run_mk_idx ON summary_generation_run (mk_id, started_at DESC);
+
+-- quality/rating invariant: a rating exists exactly when quality is not 'none'.
+-- Verified true for all 1,773 rows in the export.
+CREATE TABLE mk_issue_summary (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id               uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  issue_id            uuid NOT NULL REFERENCES issue (id) ON DELETE CASCADE,
+  summary_he          text,
+  extended_summary_he text,
+  quality             summary_quality NOT NULL,
+  rating              integer CHECK (rating IS NULL OR rating BETWEEN 1 AND 5),
+  limitations         text,
+  model_version       text,
+  generation_run_id   uuid REFERENCES summary_generation_run (id) ON DELETE SET NULL,
+  updated_at          timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (mk_id, issue_id),
+  CONSTRAINT mk_issue_summary_rating_matches_quality
+    CHECK ((quality = 'none' AND rating IS NULL) OR (quality <> 'none' AND rating IS NOT NULL))
+);
+CREATE INDEX mk_issue_summary_issue_idx ON mk_issue_summary (issue_id);
+
+CREATE TABLE mk_issue_summary_supporting_post (
+  summary_id uuid NOT NULL REFERENCES mk_issue_summary (id) ON DELETE CASCADE,
+  post_id    uuid NOT NULL REFERENCES social_post (id) ON DELETE CASCADE,
+  PRIMARY KEY (summary_id, post_id)
+);
+CREATE INDEX summary_supporting_post_idx ON mk_issue_summary_supporting_post (post_id);
+
+-- ---------------------------------------------------------------------------
+-- Bills, vote events, votes
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE bill (
+  id                       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  knesset_bill_id          integer UNIQUE,
+  title_he                 text,
+  title_en                 text,
+  summary                  text,
+  status                   text,
+  enacted_law_document_uri text,
+  embedding                real[],
+  CONSTRAINT bill_embedding_dim
+    CHECK (embedding IS NULL OR cardinality(embedding) = 3072)
 );
 
--- Guard the denormalized mk_id: a quote must belong to the same MK as its source post.
-create function check_quote_mk() returns trigger language plpgsql as $$
-begin
-  if new.source_post_id is not null and
-     (select mk_id from social_post where id = new.source_post_id) is distinct from new.mk_id then
-    raise exception 'quote.mk_id % does not match mk_id of source_post %', new.mk_id, new.source_post_id;
-  end if;
-  return new;
-end $$;
-create trigger quote_mk_guard before insert or update on quote
-  for each row execute function check_quote_mk();
+CREATE TABLE bill_author (
+  bill_id uuid NOT NULL REFERENCES bill (id) ON DELETE CASCADE,
+  mk_id   uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  role    text,
+  PRIMARY KEY (bill_id, mk_id)
+);
 
--- A quote can touch several issues; each link carries the sentiment on that issue.
-create table quote_issue (
-  id          bigint generated always as identity primary key,
-  quote_id    bigint not null references quote(id) on delete cascade,
-  issue_id    bigint not null references issue(id),
-  signal      issue_signal not null default 'neutral',
-  valence     numeric(4,3) check (valence between -1 and 1),
-  confidence  numeric(4,3) check (confidence between 0 and 1),
-  unique (quote_id, issue_id)
+-- Anything MKs vote on. NOT PRESENT in the 2026-08-21 export — see
+-- db/DATA_QUALITY.md. 907,210 mk_vote rows reference 34,159 events that must
+-- be re-exported before the mk_vote foreign key can be enabled.
+CREATE TABLE vote_event (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  external_key        text NOT NULL UNIQUE,
+  event_kind          event_kind NOT NULL,
+  bill_id             uuid REFERENCES bill (id) ON DELETE SET NULL,
+  committee_id        uuid REFERENCES committee (id) ON DELETE SET NULL,
+  reading             text,
+  title_he            text,
+  occurred_at         timestamptz,
+  draft_document_uri  text
+);
+CREATE INDEX vote_event_bill_idx      ON vote_event (bill_id);
+CREATE INDEX vote_event_committee_idx ON vote_event (committee_id);
+
+CREATE TABLE bill_issue (
+  bill_id        uuid NOT NULL REFERENCES bill (id) ON DELETE CASCADE,
+  issue_id       uuid NOT NULL REFERENCES issue (id) ON DELETE CASCADE,
+  mapping_method mapping_method,
+  mapping_note   text,
+  confidence     numeric(4,3) CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1),
+  PRIMARY KEY (bill_id, issue_id)
+);
+
+CREATE TABLE vote_event_issue (
+  vote_event_id  uuid NOT NULL REFERENCES vote_event (id) ON DELETE CASCADE,
+  issue_id       uuid NOT NULL REFERENCES issue (id) ON DELETE CASCADE,
+  mapping_method mapping_method,
+  mapping_note   text,
+  confidence     numeric(4,3) CHECK (confidence IS NULL OR confidence BETWEEN 0 AND 1),
+  PRIMARY KEY (vote_event_id, issue_id)
+);
+
+-- The vote_event_id foreign key is added separately, after vote_event is
+-- populated. See db/pending_constraints.sql.
+CREATE TABLE mk_vote (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id         uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  vote_event_id uuid NOT NULL,
+  vote          vote_value NOT NULL,
+  UNIQUE (mk_id, vote_event_id)
+);
+CREATE INDEX mk_vote_event_idx ON mk_vote (vote_event_id);
+
+CREATE TABLE mk_relation (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  mk_id         uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  related_mk_id uuid NOT NULL REFERENCES mk (id) ON DELETE CASCADE,
+  relation_type relation_kind NOT NULL,
+  issue_id      uuid REFERENCES issue (id) ON DELETE CASCADE,
+  score         double precision,
+  CONSTRAINT mk_relation_not_self CHECK (mk_id <> related_mk_id)
 );
 
 -- ---------------------------------------------------------------------------
--- Per-(MK, issue) position summary — the rollup the profile UI shows
+-- updated_at triggers
 -- ---------------------------------------------------------------------------
-
-create table mk_issue_position (
-  id                   bigint generated always as identity primary key,
-  mk_id                bigint not null references mk(id) on delete cascade,
-  issue_id             bigint not null references issue(id),
-  stance               stance not null default 'unclear',
-  -- Consistency is a separate axis from stance: an MK can currently support
-  -- something AND have flip-flopped to get there. Filterable independently.
-  is_flip_flop         boolean not null default false,
-  position_summary_he  text,                       -- short summary; may describe the flip-flop
-  position_summary_en  text,
-  overall_valence      numeric(4,3) check (overall_valence between -1 and 1),
-  has_concrete_promise boolean not null default false,
-  model_version        text,
-  updated_at           timestamptz not null default now(),
-  unique (mk_id, issue_id)
-);
-create trigger mk_issue_position_touch before update on mk_issue_position
-  for each row execute function touch_updated_at();
+CREATE TRIGGER party_touch            BEFORE UPDATE ON party            FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+CREATE TRIGGER mk_touch               BEFORE UPDATE ON mk               FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+CREATE TRIGGER mk_issue_summary_touch BEFORE UPDATE ON mk_issue_summary FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
+CREATE TRIGGER tweet_cluster_touch    BEFORE UPDATE ON tweet_cluster    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
 
 -- ---------------------------------------------------------------------------
--- Parliamentary activity — bills and votes ("said vs did" crossing)
+-- Serving views (ported from db/schema.bq.sql)
 -- ---------------------------------------------------------------------------
 
-create table bill (
-  id              bigint generated always as identity primary key,
-  knesset_bill_id integer unique,                  -- external id from Open Knesset / OData
-  title_he        text not null,
-  title_en        text,
-  summary         text,
-  status          text,
-  created_at      timestamptz not null default now()
-);
-
-create table bill_issue (
-  bill_id  bigint not null references bill(id) on delete cascade,
-  issue_id bigint not null references issue(id),
-  primary key (bill_id, issue_id)
-);
-
--- One row per MK per voting event. `reading` distinguishes the multiple votes
--- a bill goes through (1st/2nd/3rd reading, continuity, ...); null when unknown.
-create table mk_vote (
-  id        bigint generated always as identity primary key,
-  mk_id     bigint not null references mk(id) on delete cascade,
-  bill_id   bigint not null references bill(id) on delete cascade,
-  reading   smallint,
-  vote      vote_value not null,
-  voted_at  timestamptz,
-  constraint mk_vote_event unique nulls not distinct (mk_id, bill_id, reading)
-);
-
--- ---------------------------------------------------------------------------
--- Connections between MKs (party grouping, similar-position edges, "notable")
--- ---------------------------------------------------------------------------
-
-create table mk_relation (
-  id             bigint generated always as identity primary key,
-  mk_id          bigint not null references mk(id) on delete cascade,
-  related_mk_id  bigint not null references mk(id) on delete cascade,
-  relation_type  relation_kind not null,
-  issue_id       bigint references issue(id),       -- set when relation is issue-specific
-  score          numeric(4,3) check (score between -1 and 1),
-  check (mk_id <> related_mk_id),
-  constraint mk_relation_edge unique nulls not distinct (mk_id, related_mk_id, relation_type, issue_id)
-);
-
--- ---------------------------------------------------------------------------
--- Indexes
--- ---------------------------------------------------------------------------
-create index on mk (is_current);
-create index on mk_affiliation (mk_id) where end_date is null;   -- current-party lookups
-create index on mk_affiliation (party_id);
-create index on mk_role (mk_id) where end_date is null;          -- current-roles lookups
-create index on mk_social_account (mk_id);
-create index on social_post (mk_id, posted_at desc);
-create index on social_post (platform);
-create index on quote (mk_id, said_at desc);                     -- the profile timeline
-create index on quote (mk_id) where is_concrete_promise;         -- promises filter
-create index on quote (language);
-create index on quote using gin (text gin_trgm_ops);             -- keyword search (Hebrew-safe)
-create index on social_post using gin (text gin_trgm_ops);
-create index on quote_issue (issue_id, quote_id);
-create index on mk_issue_position (issue_id);
-create index on mk_vote (mk_id);
-create index on mk_vote (bill_id);
-create index on bill_issue (issue_id);
-create index on mk_relation (mk_id);
-
--- ---------------------------------------------------------------------------
--- Views for the application (read models)
--- ---------------------------------------------------------------------------
--- security_invoker: run with the caller's permissions so RLS on the underlying
--- tables applies (all public-read today, but keeps the model honest).
-
--- Main-page grid: one card per MK, with current party, roles, platforms, issue coverage.
--- Platforms come from the account registry, not collected posts, so the filter
--- works before/without ingestion.
-create view v_mk_card with (security_invoker = true) as
-select
+CREATE VIEW v_mk_card WITH (security_invoker = true) AS
+SELECT
   m.id, m.slug, m.full_name_he, m.full_name_en, m.photo_url, m.is_current,
-  p.name_he  as party_he,
-  p.name_en  as party_en,
-  (select array_agg(distinct sa.platform) from mk_social_account sa
-    where sa.mk_id = m.id and sa.is_active)                              as platforms,
-  (select array_agg(distinct r.role_type) from mk_role r
-    where r.mk_id = m.id and r.end_date is null)                         as current_roles,
-  (select count(distinct ip.issue_id) from mk_issue_position ip
-    where ip.mk_id = m.id)                                               as issue_count
-from mk m
-left join mk_affiliation a on a.mk_id = m.id and a.end_date is null
-left join party p on p.id = a.party_id;
+  p.name_he AS party_he,
+  p.name_en AS party_en,
+  ARRAY(SELECT DISTINCT sa.platform FROM mk_social_account sa
+         WHERE sa.mk_id = m.id AND sa.is_active)      AS platforms,
+  ARRAY(SELECT DISTINCT r.role_type FROM mk_role r
+         WHERE r.mk_id = m.id AND r.end_date IS NULL) AS current_roles,
+  (SELECT count(DISTINCT s.issue_id) FROM mk_issue_summary s
+    WHERE s.mk_id = m.id)                             AS issue_count
+FROM mk m
+LEFT JOIN mk_affiliation a ON a.mk_id = m.id AND a.end_date IS NULL
+LEFT JOIN party p ON p.id = a.party_id;
 
--- Per-(MK, issue) position with quote counts — the profile's issue blocks.
-create view v_mk_issue_position with (security_invoker = true) as
-select
-  ip.mk_id, ip.issue_id, i.slug as issue_slug, i.name_he as issue_he, i.name_en as issue_en,
-  ip.stance, ip.is_flip_flop, ip.position_summary_he, ip.position_summary_en,
-  ip.overall_valence, ip.has_concrete_promise, ip.updated_at,
-  (select count(*) from quote q
-     join quote_issue qi on qi.quote_id = q.id
-    where q.mk_id = ip.mk_id and qi.issue_id = ip.issue_id) as quote_count,
-  (select count(*) from quote q
-     join quote_issue qi on qi.quote_id = q.id
-    where q.mk_id = ip.mk_id and qi.issue_id = ip.issue_id and q.is_concrete_promise) as promise_count
-from mk_issue_position ip
-join issue i on i.id = ip.issue_id;
+CREATE VIEW v_mk_issue_summary WITH (security_invoker = true) AS
+SELECT
+  s.id AS summary_id,
+  s.mk_id, s.issue_id, i.slug AS issue_slug, i.name AS issue_name,
+  i.description AS issue_description,
+  s.summary_he, s.extended_summary_he, s.quality, s.rating, s.limitations,
+  s.model_version, s.generation_run_id, s.updated_at,
+  ARRAY(SELECT link.post_id FROM mk_issue_summary_supporting_post link
+         WHERE link.summary_id = s.id)                AS supporting_post_ids,
+  (SELECT count(*) FROM post_issue pi
+     JOIN social_post sp ON sp.id = pi.post_id
+    WHERE sp.mk_id = s.mk_id AND pi.issue_id = s.issue_id)          AS post_count,
+  (SELECT count(*) FROM post_issue pi
+     JOIN social_post sp ON sp.id = pi.post_id
+    WHERE sp.mk_id = s.mk_id AND pi.issue_id = s.issue_id
+      AND pi.is_concrete_promise)                                    AS promise_count
+FROM mk_issue_summary s
+JOIN issue i ON i.id = s.issue_id;
 
--- "Matrix transpose": for each issue, every MK's stance — powers the cross-MK issue view.
-create view v_issue_landscape with (security_invoker = true) as
-select
-  i.id as issue_id, i.slug as issue_slug, i.name_he as issue_he,
-  ip.mk_id, m.full_name_he, m.slug as mk_slug,
-  ip.stance, ip.is_flip_flop, ip.overall_valence, ip.has_concrete_promise
-from issue i
-join mk_issue_position ip on ip.issue_id = i.id
-join mk m on m.id = ip.mk_id;
+CREATE VIEW v_issue_landscape WITH (security_invoker = true) AS
+SELECT
+  i.id AS issue_id, i.slug AS issue_slug, i.name AS issue_name,
+  s.mk_id, m.full_name_he, m.slug AS mk_slug,
+  s.summary_he, s.extended_summary_he, s.quality, s.rating, s.limitations, s.updated_at,
+  (SELECT count(*) FROM post_issue pi
+     JOIN social_post sp ON sp.id = pi.post_id
+    WHERE sp.mk_id = s.mk_id AND pi.issue_id = i.id) AS post_count
+FROM issue i
+JOIN mk_issue_summary s ON s.issue_id = i.id
+JOIN mk m ON m.id = s.mk_id;
 
--- "Said vs did": stated stance per issue next to the MK's vote record on bills tagged to that issue.
-create view v_said_vs_did with (security_invoker = true) as
-select
-  ip.mk_id, ip.issue_id, ip.stance as stated_stance,
-  count(*) filter (where v.vote = 'for')     as votes_for,
-  count(*) filter (where v.vote = 'against') as votes_against,
-  count(*) filter (where v.vote = 'abstain') as votes_abstain
-from mk_issue_position ip
-join bill_issue bi on bi.issue_id = ip.issue_id
-join mk_vote v on v.bill_id = bi.bill_id and v.mk_id = ip.mk_id
-group by ip.mk_id, ip.issue_id, ip.stance;
+CREATE VIEW v_vote_event_issues WITH (security_invoker = true) AS
+SELECT vei.vote_event_id, vei.issue_id FROM vote_event_issue vei
+UNION
+SELECT e.id AS vote_event_id, bi.issue_id
+FROM vote_event e
+JOIN bill_issue bi ON bi.bill_id = e.bill_id;
 
--- ---------------------------------------------------------------------------
--- RPC: compound quote search in one round-trip
--- ---------------------------------------------------------------------------
--- The profile page's filtered quote list (issue + platform + language +
--- promises-only + free-text keyword), server-side. Call via
--- supabase.rpc('search_quotes', {...}); all filters optional.
-create function search_quotes(
-  p_mk_id         bigint       default null,
-  p_issue_slug    text         default null,
-  p_platform      platform     default null,
-  p_language      content_lang default null,
-  p_promises_only boolean      default false,
-  p_keyword       text         default null,
-  p_limit         integer      default 50,
-  p_offset        integer      default 0
-) returns table (
-  quote_id            bigint,
-  mk_id               bigint,
-  text                text,
-  language            content_lang,
-  said_at             timestamptz,
-  is_concrete_promise boolean,
-  issue_slug          text,
-  signal              issue_signal,
-  valence             numeric,
-  post_platform       platform,
-  post_url            text
-) language sql stable as $$
-  select
-    q.id, q.mk_id, q.text, q.language, q.said_at, q.is_concrete_promise,
-    i.slug, qi.signal, qi.valence, sp.platform, sp.url
-  from quote q
-  join quote_issue qi on qi.quote_id = q.id
-  join issue i        on i.id = qi.issue_id
-  left join social_post sp on sp.id = q.source_post_id
-  where (p_mk_id      is null or q.mk_id = p_mk_id)
-    and (p_issue_slug is null or i.slug = p_issue_slug)
-    and (p_platform   is null or sp.platform = p_platform)
-    and (p_language   is null or q.language = p_language)
-    and (not p_promises_only or q.is_concrete_promise)
-    and (p_keyword    is null or q.text ilike '%' || p_keyword || '%')
-  order by q.said_at desc nulls last
-  limit p_limit offset p_offset
-$$;
+CREATE VIEW v_mk_issue_authorship WITH (security_invoker = true) AS
+SELECT
+  ba.mk_id, bi.issue_id,
+  count(*) FILTER (WHERE ba.role = 'initiator')    AS bills_initiated,
+  count(*) FILTER (WHERE ba.role = 'co_initiator') AS bills_co_initiated,
+  count(*)                                         AS bills_authored_total
+FROM bill_author ba
+JOIN bill_issue bi ON bi.bill_id = ba.bill_id
+GROUP BY ba.mk_id, bi.issue_id;
 
--- ---------------------------------------------------------------------------
--- Row Level Security — public read, service-role write
--- ---------------------------------------------------------------------------
--- Enable RLS and grant SELECT to the anon/authenticated roles on every table.
--- Writes carry no policy, so only the service_role key (used by the ingestion
--- pipeline) bypasses RLS and can insert/update.
-do $$
-declare t text;
-begin
-  foreach t in array array[
-    'party','committee','issue','mk','mk_affiliation','mk_role','mk_social_account',
-    'social_post','quote','quote_issue','mk_issue_position','bill','bill_issue',
-    'mk_vote','mk_relation'
-  ] loop
-    execute format('alter table %I enable row level security;', t);
-    execute format($p$create policy %I on %I for select to anon, authenticated using (true);$p$,
-                   'public_read_' || t, t);
-  end loop;
-end $$;
+CREATE VIEW v_said_vs_did WITH (security_invoker = true) AS
+SELECT
+  v.mk_id, m.issue_id, e.event_kind,
+  count(*) FILTER (WHERE v.vote = 'for')     AS votes_for,
+  count(*) FILTER (WHERE v.vote = 'against') AS votes_against,
+  count(*) FILTER (WHERE v.vote = 'abstain') AS votes_abstain,
+  count(*) FILTER (WHERE v.vote = 'absent')  AS votes_absent
+FROM mk_vote v
+JOIN vote_event e ON e.id = v.vote_event_id
+JOIN v_vote_event_issues m ON m.vote_event_id = e.id
+GROUP BY v.mk_id, m.issue_id, e.event_kind;

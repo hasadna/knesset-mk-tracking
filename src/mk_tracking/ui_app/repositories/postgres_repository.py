@@ -1,40 +1,59 @@
-"""BigQuery-backed repository for the MK explorer."""
+"""PostgreSQL-backed repository for the MK explorer.
+
+The only live backend. It began as a straight port of the BigQuery repository,
+which has since been removed (see git history for the side-by-side); the SQL
+still carries the marks of that port: ``QUALIFY ROW_NUMBER() = 1`` became
+``DISTINCT ON``, ``ARRAY_AGG(STRUCT(...))`` became ``jsonb_agg`` / ``array_agg``
+of ``jsonb_build_object``, and ``@param`` became ``%(param)s``.
+"""
 
 from __future__ import annotations
 
 import operator
 import re
 import threading
+from collections.abc import Callable
+from datetime import datetime
 from typing import Any
 
+import psycopg
 from cachetools import TTLCache, cachedmethod
-from google.cloud import bigquery
+from psycopg.rows import dict_row
 
-PROJECT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
-DATASET_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
+from ...db_config import SCHEMA_PATTERN
+
 MK_KEY_PATTERN = re.compile(r"^mk-(\d+)$")
 POST_KEY_PATTERN = re.compile(r"^x:[A-Za-z0-9_.-]{1,50}:(\d{1,30})$")
 TOPIC_RELEVANCE_THRESHOLD = 0.20
 
 
+def _json_int(column: str, key: str) -> str:
+    """`SAFE_CAST(JSON_VALUE(column, '$.key') AS INT64)` over a jsonb column.
 
-class BigQueryRepository:
-    backend_name = "bigquery"
+    The jsonpath type guard reproduces SAFE_CAST: a missing key, or a value
+    that is not a JSON number, yields NULL instead of raising.
+    """
+    return (
+        f"(jsonb_path_query_first({column}, "
+        f"'$.{key} ? (@.type() == \"number\")') #>> '{{}}')::numeric"
+    )
+
+
+class PostgresRepository:
+    backend_name = "postgres"
 
     def __init__(
         self,
-        project: str,
-        dataset: str = "mk_tracking",
-        client: bigquery.Client | None = None,
+        conninfo: str,
+        schema: str = "mk_tracking",
+        connection_factory: Callable[[], psycopg.Connection[Any]] | None = None,
     ) -> None:
-        if not PROJECT_PATTERN.fullmatch(project):
-            raise ValueError("invalid BigQuery project")
-        if not DATASET_PATTERN.fullmatch(dataset):
-            raise ValueError("invalid BigQuery dataset")
-        self.project = project
-        self.dataset = dataset
-        self.client = client or bigquery.Client(project=project)
-        self.prefix = f"`{project}.{dataset}"
+        if not SCHEMA_PATTERN.fullmatch(schema):
+            raise ValueError("invalid Postgres schema")
+        self.conninfo = conninfo
+        self.schema = schema
+        self.connection_factory = connection_factory or self._connect
+        self.prefix = schema
 
         # Setup 30-minute TTL caches
         self._cache_lock = threading.RLock()
@@ -45,13 +64,22 @@ class BigQueryRepository:
         self._cache_post = TTLCache(maxsize=1000, ttl=1800)
         self._preloaded_mk_issues: dict[str, dict[str, Any]] | None = None
 
+    def _connect(self) -> psycopg.Connection[Any]:
+        """Default factory: one short-lived connection per query."""
+        return psycopg.connect(self.conninfo)
+
     def _query(
         self,
         sql: str,
-        parameters: list[bigquery.ScalarQueryParameter] | None = None,
-    ) -> list[bigquery.Row]:
-        config = bigquery.QueryJobConfig(query_parameters=parameters or [])
-        return list(self.client.query(sql, job_config=config).result())
+        parameters: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        with self.connection_factory() as connection:
+            # BigQuery timestamps are UTC; keep rendered dates and the ISO
+            # strings that come out of jsonb on the same clock.
+            connection.execute("SET TIME ZONE 'UTC'")
+            with connection.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(sql, parameters or {})
+                return cursor.fetchall()
 
     @staticmethod
     def _mk_id_from_key(mk_key: str) -> int | None:
@@ -61,6 +89,11 @@ class BigQueryRepository:
     @staticmethod
     def _source_key(handle: str | None, post_id: str) -> str:
         return f"x:{handle or 'unknown'}:{post_id}"
+
+    @staticmethod
+    def _as_datetime(value: Any) -> datetime | None:
+        """Timestamps nested inside jsonb arrive as ISO strings, not datetimes."""
+        return datetime.fromisoformat(value) if isinstance(value, str) else value
 
     def list_mks(
         self,
@@ -91,24 +124,21 @@ class BigQueryRepository:
                 "OR COALESCE(post_counts.post_count, 0) > 0)"
             )
         ]
-        parameters: list[bigquery.ScalarQueryParameter] = []
+        parameters: dict[str, Any] = {}
 
         sql = f"""
         WITH current_party AS (
-          SELECT a.mk_id, p.name_he,
-            ROW_NUMBER() OVER (
-              PARTITION BY a.mk_id
-              ORDER BY a.start_date DESC NULLS LAST, a.id
-            ) AS row_number
-          FROM {self.prefix}.mk_affiliation` a
-          JOIN {self.prefix}.party` p ON p.id=a.party_id
+          SELECT DISTINCT ON (a.mk_id) a.mk_id, p.name_he
+          FROM {self.prefix}.mk_affiliation a
+          JOIN {self.prefix}.party p ON p.id=a.party_id
           WHERE a.end_date IS NULL
+          ORDER BY a.mk_id, a.start_date DESC NULLS LAST, a.id
         ),
         party_sizes AS (
           SELECT p.name_he, COUNT(DISTINCT a.mk_id) AS member_count
-          FROM {self.prefix}.mk_affiliation` a
-          JOIN {self.prefix}.party` p ON p.id=a.party_id
-          JOIN {self.prefix}.mk` member ON member.id=a.mk_id AND member.is_current
+          FROM {self.prefix}.mk_affiliation a
+          JOIN {self.prefix}.party p ON p.id=a.party_id
+          JOIN {self.prefix}.mk member ON member.id=a.mk_id AND member.is_current
           WHERE a.end_date IS NULL
           GROUP BY p.name_he
         ),
@@ -116,28 +146,26 @@ class BigQueryRepository:
           SELECT
             s.mk_id,
             COUNT(*) AS issue_count,
-            ARRAY_AGG(STRUCT(i.slug AS slug, s.quality AS quality)) AS coverage_rows
-          FROM {self.prefix}.mk_issue_summary` s
-          JOIN {self.prefix}.issue` i ON i.id=s.issue_id
+            jsonb_agg(jsonb_build_object('slug', i.slug, 'quality', s.quality)) AS coverage_rows
+          FROM {self.prefix}.mk_issue_summary s
+          JOIN {self.prefix}.issue i ON i.id=s.issue_id
           GROUP BY s.mk_id
         ),
         role_data AS (
-          SELECT mk_id, ARRAY_AGG(role_type) AS current_roles
-          FROM {self.prefix}.mk_role`
+          SELECT mk_id, array_agg(role_type::text) AS current_roles
+          FROM {self.prefix}.mk_role
           WHERE end_date IS NULL
           GROUP BY mk_id
         ),
         twitter_data AS (
-          SELECT mk_id, handle, url
-          FROM {self.prefix}.mk_social_account`
+          SELECT DISTINCT ON (mk_id) mk_id, handle, url
+          FROM {self.prefix}.mk_social_account
           WHERE platform='twitter' AND is_active
-          QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY mk_id ORDER BY verified DESC, id
-          )=1
+          ORDER BY mk_id, verified DESC, id
         ),
         post_counts AS (
           SELECT mk_id, COUNT(DISTINCT platform_post_id) AS post_count
-          FROM {self.prefix}.social_post`
+          FROM {self.prefix}.social_post
           WHERE platform='twitter' AND NOT is_deleted
           GROUP BY mk_id
         )
@@ -150,13 +178,13 @@ class BigQueryRepository:
           m.is_current,
           COALESCE(p.name_he, 'ללא מפלגה') AS party_name,
           COALESCE(ps.member_count, 0) AS party_size,
-          COALESCE(summary_data.coverage_rows, []) AS coverage_rows,
-          COALESCE(role_data.current_roles, []) AS current_roles,
+          COALESCE(summary_data.coverage_rows, '[]'::jsonb) AS coverage_rows,
+          COALESCE(role_data.current_roles, ARRAY[]::text[]) AS current_roles,
           twitter_data.handle AS twitter_handle,
           twitter_data.url AS twitter_url,
           COALESCE(post_counts.post_count, 0) AS post_count
-        FROM {self.prefix}.mk` m
-        LEFT JOIN current_party p ON p.mk_id=m.id AND p.row_number=1
+        FROM {self.prefix}.mk m
+        LEFT JOIN current_party p ON p.mk_id=m.id
         LEFT JOIN party_sizes ps ON ps.name_he=p.name_he
         LEFT JOIN summary_data ON summary_data.mk_id=m.id
         LEFT JOIN role_data ON role_data.mk_id=m.id
@@ -211,7 +239,7 @@ class BigQueryRepository:
 
         sql = f"""
         SELECT slug, name, description, prompt_for_social_post_similarity, rating_scale, sort_order
-        FROM {self.prefix}.issue`
+        FROM {self.prefix}.issue
         ORDER BY sort_order, slug
         """
         results = []
@@ -241,7 +269,6 @@ class BigQueryRepository:
             )
         return results
 
-
     def get_mk(self, mk_key: str) -> dict[str, Any] | None:
         matches = self.list_mks()
         return next((member for member in matches if member["key"] == mk_key), None)
@@ -250,15 +277,15 @@ class BigQueryRepository:
         sql = f"""
         WITH topic_relevant_posts AS (
           SELECT topic_post.mk_id, pi.issue_id, pi.post_id
-          FROM {self.prefix}.post_issue` pi
-          JOIN {self.prefix}.social_post` topic_post ON topic_post.id=pi.post_id
+          FROM {self.prefix}.post_issue pi
+          JOIN {self.prefix}.social_post topic_post ON topic_post.id=pi.post_id
           WHERE pi.confidence >= {TOPIC_RELEVANCE_THRESHOLD}
 
-          UNION DISTINCT
+          UNION
 
           SELECT summary.mk_id, summary.issue_id, link.post_id
-          FROM {self.prefix}.mk_issue_summary` summary
-          JOIN {self.prefix}.mk_issue_summary_supporting_post` link
+          FROM {self.prefix}.mk_issue_summary summary
+          JOIN {self.prefix}.mk_issue_summary_supporting_post link
             ON link.summary_id=summary.id
         ),
         topic_post_counts AS (
@@ -267,42 +294,40 @@ class BigQueryRepository:
           GROUP BY mk_id, issue_id
         ),
         topic_votes_dedup AS (
-          SELECT 
+          SELECT DISTINCT ON (v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he))
             v.mk_id,
             vei.issue_id,
             v.id AS vote_id,
             COALESCE(b.title_he, ve.title_he) AS title,
             v.vote,
-            ve.voted_at,
+            ve.occurred_at AS voted_at,
             ve.event_kind,
             COALESCE(ve.draft_document_uri, b.enacted_law_document_uri) AS document_uri,
             b.summary AS bill_summary
-          FROM {self.prefix}.mk_vote` v
-          JOIN {self.prefix}.vote_event` ve ON ve.id = v.vote_event_id
-          JOIN {self.prefix}.v_vote_event_issues` vei ON vei.vote_event_id = ve.id
-          LEFT JOIN {self.prefix}.bill` b ON b.id = ve.bill_id
-          QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he)
-            ORDER BY ve.voted_at DESC
-          ) = 1
+          FROM {self.prefix}.mk_vote v
+          JOIN {self.prefix}.vote_event ve ON ve.id = v.vote_event_id
+          JOIN {self.prefix}.v_vote_event_issues vei ON vei.vote_event_id = ve.id
+          LEFT JOIN {self.prefix}.bill b ON b.id = ve.bill_id
+          ORDER BY
+            v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he),
+            ve.occurred_at DESC NULLS LAST
         ),
         topic_votes_cte AS (
-          SELECT 
+          SELECT
             mk_id,
             issue_id,
-            ARRAY_AGG(
-              STRUCT(
-                vote_id,
-                title,
-                vote,
-                voted_at,
-                event_kind,
-                document_uri,
-                bill_summary
+            (array_agg(
+              jsonb_build_object(
+                'vote_id', vote_id,
+                'title', title,
+                'vote', vote,
+                'voted_at', voted_at,
+                'event_kind', event_kind,
+                'document_uri', document_uri,
+                'bill_summary', bill_summary
               )
-              ORDER BY voted_at DESC
-              LIMIT 10
-            ) AS votes_list
+              ORDER BY voted_at DESC NULLS LAST
+            ))[1:10] AS votes_list
           FROM topic_votes_dedup
           GROUP BY mk_id, issue_id
         )
@@ -316,24 +341,25 @@ class BigQueryRepository:
           COALESCE(topic_counts.post_count, 0) AS topic_post_count,
           s.limitations,
           s.model_version,
-          ARRAY(
-            SELECT AS STRUCT
-              post.platform_post_id,
-              account.handle,
-              post.posted_at,
-              post.text,
-              post.url,
-              post.engagement
-            FROM {self.prefix}.mk_issue_summary_supporting_post` link
-            JOIN {self.prefix}.social_post` post ON post.id=link.post_id
-            LEFT JOIN {self.prefix}.mk_social_account` account ON account.id=post.account_id
+          COALESCE((
+            SELECT jsonb_agg(jsonb_build_object(
+              'platform_post_id', post.platform_post_id,
+              'handle', account.handle,
+              'posted_at', post.posted_at,
+              'text', post.text,
+              'url', post.url,
+              'engagement', post.engagement
+            ))
+            FROM {self.prefix}.mk_issue_summary_supporting_post link
+            JOIN {self.prefix}.social_post post ON post.id=link.post_id
+            LEFT JOIN {self.prefix}.mk_social_account account ON account.id=post.account_id
             WHERE link.summary_id=s.id
               AND post.platform='twitter'
-          ) AS supporting_posts,
-          COALESCE(tv.votes_list, []) AS topic_votes
-        FROM {self.prefix}.mk` m
-        CROSS JOIN {self.prefix}.issue` i
-        LEFT JOIN {self.prefix}.mk_issue_summary` s
+          ), '[]'::jsonb) AS supporting_posts,
+          COALESCE(tv.votes_list, ARRAY[]::jsonb[]) AS topic_votes
+        FROM {self.prefix}.mk m
+        CROSS JOIN {self.prefix}.issue i
+        LEFT JOIN {self.prefix}.mk_issue_summary s
           ON s.mk_id=m.id AND s.issue_id=i.id
         LEFT JOIN topic_post_counts topic_counts
           ON topic_counts.mk_id=m.id AND topic_counts.issue_id=i.id
@@ -343,7 +369,7 @@ class BigQueryRepository:
         ORDER BY m.knesset_member_id, i.sort_order, i.slug
         """
         rows = self._query(sql)
-        grouped: dict[int, list[bigquery.Row]] = {}
+        grouped: dict[int, list[dict[str, Any]]] = {}
         for row in rows:
             km_id = row["knesset_member_id"]
             if km_id not in grouped:
@@ -364,7 +390,7 @@ class BigQueryRepository:
                     post_id = str(item["platform_post_id"])
                     handle = item["handle"] or "unknown"
                     key = self._source_key(handle, post_id)
-                    posted_at = item["posted_at"]
+                    posted_at = self._as_datetime(item["posted_at"])
                     source_posts[key] = {
                         "key": key,
                         "sourceType": "x",
@@ -385,7 +411,7 @@ class BigQueryRepository:
                         "id": str(v["vote_id"]),
                         "title": v["title"] or "הצבעת כנסת",
                         "vote": v["vote"],
-                        "date": v["voted_at"].date().isoformat() if v.get("voted_at") else "",
+                        "date": voted_at.date().isoformat() if (voted_at := self._as_datetime(v.get("voted_at"))) else "",
                         "eventKind": v.get("event_kind") or "plenum",
                         "documentUri": v.get("document_uri") or None,
                         "summary": v.get("bill_summary") or None,
@@ -408,7 +434,7 @@ class BigQueryRepository:
                         "extendedStance": "",
                         "sources": sources,
                         "limitations": row["limitations"] or "",
-                        "modelVersion": row.get("model_version") if hasattr(row, "get") or isinstance(row, dict) else (row["model_version"] if "model_version" in row.keys() else None),
+                        "modelVersion": row["model_version"],
                         "votes": votes,
                         "voteSummary": vote_summary,
                     }
@@ -436,21 +462,21 @@ class BigQueryRepository:
             return None
         sql = f"""
         WITH target_mk AS (
-          SELECT id, full_name_he FROM {self.prefix}.mk` WHERE knesset_member_id=@mk_id
+          SELECT id, full_name_he FROM {self.prefix}.mk WHERE knesset_member_id=%(mk_id)s
         ),
         topic_relevant_posts AS (
           SELECT topic_post.mk_id, pi.issue_id, pi.post_id
-          FROM {self.prefix}.post_issue` pi
-          JOIN {self.prefix}.social_post` topic_post ON topic_post.id=pi.post_id
+          FROM {self.prefix}.post_issue pi
+          JOIN {self.prefix}.social_post topic_post ON topic_post.id=pi.post_id
           JOIN target_mk ON target_mk.id=topic_post.mk_id
           WHERE pi.confidence >= {TOPIC_RELEVANCE_THRESHOLD}
 
-          UNION DISTINCT
+          UNION
 
           SELECT summary.mk_id, summary.issue_id, link.post_id
-          FROM {self.prefix}.mk_issue_summary` summary
+          FROM {self.prefix}.mk_issue_summary summary
           JOIN target_mk ON target_mk.id=summary.mk_id
-          JOIN {self.prefix}.mk_issue_summary_supporting_post` link
+          JOIN {self.prefix}.mk_issue_summary_supporting_post link
             ON link.summary_id=summary.id
         ),
         topic_post_counts AS (
@@ -459,43 +485,41 @@ class BigQueryRepository:
           GROUP BY mk_id, issue_id
         ),
         topic_votes_dedup AS (
-          SELECT 
+          SELECT DISTINCT ON (v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he))
             v.mk_id,
             vei.issue_id,
             v.id AS vote_id,
             COALESCE(b.title_he, ve.title_he) AS title,
             v.vote,
-            ve.voted_at,
+            ve.occurred_at AS voted_at,
             ve.event_kind,
             COALESCE(ve.draft_document_uri, b.enacted_law_document_uri) AS document_uri,
             b.summary AS bill_summary
-          FROM {self.prefix}.mk_vote` v
-          JOIN {self.prefix}.vote_event` ve ON ve.id = v.vote_event_id
-          JOIN {self.prefix}.v_vote_event_issues` vei ON vei.vote_event_id = ve.id
-          LEFT JOIN {self.prefix}.bill` b ON b.id = ve.bill_id
+          FROM {self.prefix}.mk_vote v
+          JOIN {self.prefix}.vote_event ve ON ve.id = v.vote_event_id
+          JOIN {self.prefix}.v_vote_event_issues vei ON vei.vote_event_id = ve.id
+          LEFT JOIN {self.prefix}.bill b ON b.id = ve.bill_id
           JOIN target_mk ON target_mk.id = v.mk_id
-          QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he)
-            ORDER BY ve.voted_at DESC
-          ) = 1
+          ORDER BY
+            v.mk_id, vei.issue_id, COALESCE(b.title_he, ve.title_he),
+            ve.occurred_at DESC NULLS LAST
         ),
         topic_votes_cte AS (
-          SELECT 
+          SELECT
             mk_id,
             issue_id,
-            ARRAY_AGG(
-              STRUCT(
-                vote_id,
-                title,
-                vote,
-                voted_at,
-                event_kind,
-                document_uri,
-                bill_summary
+            (array_agg(
+              jsonb_build_object(
+                'vote_id', vote_id,
+                'title', title,
+                'vote', vote,
+                'voted_at', voted_at,
+                'event_kind', event_kind,
+                'document_uri', document_uri,
+                'bill_summary', bill_summary
               )
-              ORDER BY voted_at DESC
-              LIMIT 10
-            ) AS votes_list
+              ORDER BY voted_at DESC NULLS LAST
+            ))[1:10] AS votes_list
           FROM topic_votes_dedup
           GROUP BY mk_id, issue_id
         )
@@ -509,24 +533,25 @@ class BigQueryRepository:
           COALESCE(topic_counts.post_count, 0) AS topic_post_count,
           s.limitations,
           s.model_version,
-          ARRAY(
-            SELECT AS STRUCT
-              post.platform_post_id,
-              account.handle,
-              post.posted_at,
-              post.text,
-              post.url,
-              post.engagement
-            FROM {self.prefix}.mk_issue_summary_supporting_post` link
-            JOIN {self.prefix}.social_post` post ON post.id=link.post_id
-            LEFT JOIN {self.prefix}.mk_social_account` account ON account.id=post.account_id
+          COALESCE((
+            SELECT jsonb_agg(jsonb_build_object(
+              'platform_post_id', post.platform_post_id,
+              'handle', account.handle,
+              'posted_at', post.posted_at,
+              'text', post.text,
+              'url', post.url,
+              'engagement', post.engagement
+            ))
+            FROM {self.prefix}.mk_issue_summary_supporting_post link
+            JOIN {self.prefix}.social_post post ON post.id=link.post_id
+            LEFT JOIN {self.prefix}.mk_social_account account ON account.id=post.account_id
             WHERE link.summary_id=s.id
               AND post.platform='twitter'
-          ) AS supporting_posts,
-          COALESCE(tv.votes_list, []) AS topic_votes
+          ), '[]'::jsonb) AS supporting_posts,
+          COALESCE(tv.votes_list, ARRAY[]::jsonb[]) AS topic_votes
         FROM target_mk m
-        CROSS JOIN {self.prefix}.issue` i
-        LEFT JOIN {self.prefix}.mk_issue_summary` s
+        CROSS JOIN {self.prefix}.issue i
+        LEFT JOIN {self.prefix}.mk_issue_summary s
           ON s.mk_id=m.id AND s.issue_id=i.id
         LEFT JOIN topic_post_counts topic_counts
           ON topic_counts.mk_id=m.id AND topic_counts.issue_id=i.id
@@ -534,10 +559,7 @@ class BigQueryRepository:
           ON tv.mk_id=m.id AND tv.issue_id=i.id
         ORDER BY i.sort_order, i.slug
         """
-        rows = self._query(
-            sql,
-            [bigquery.ScalarQueryParameter("mk_id", "INT64", knesset_member_id)],
-        )
+        rows = self._query(sql, {"mk_id": knesset_member_id})
         if not rows:
             return None
         topics = []
@@ -551,7 +573,7 @@ class BigQueryRepository:
                 post_id = str(item["platform_post_id"])
                 handle = item["handle"] or "unknown"
                 key = self._source_key(handle, post_id)
-                posted_at = item["posted_at"]
+                posted_at = self._as_datetime(item["posted_at"])
                 source_posts[key] = {
                     "key": key,
                     "sourceType": "x",
@@ -572,7 +594,7 @@ class BigQueryRepository:
                     "id": str(v["vote_id"]),
                     "title": v["title"] or "הצבעת כנסת",
                     "vote": v["vote"],
-                    "date": v["voted_at"].date().isoformat() if v.get("voted_at") else "",
+                    "date": voted_at.date().isoformat() if (voted_at := self._as_datetime(v.get("voted_at"))) else "",
                     "eventKind": v.get("event_kind") or "plenum",
                     "documentUri": v.get("document_uri") or None,
                     "summary": v.get("bill_summary") or None,
@@ -606,8 +628,6 @@ class BigQueryRepository:
             "sourcePosts": list(source_posts.values()),
         }
 
-
-
     @cachedmethod(cache=operator.attrgetter('_cache_mk_posts'), lock=operator.attrgetter('_cache_lock'))
     def get_mk_posts(
         self,
@@ -621,77 +641,84 @@ class BigQueryRepository:
         knesset_member_id = self._mk_id_from_key(mk_key)
         if knesset_member_id is None:
             return None
-        parameters = [
-            bigquery.ScalarQueryParameter("mk_id", "INT64", knesset_member_id),
-            bigquery.ScalarQueryParameter("limit", "INT64", limit),
-            bigquery.ScalarQueryParameter("offset", "INT64", offset),
-        ]
+        parameters: dict[str, Any] = {
+            "mk_id": knesset_member_id,
+            "limit": limit,
+            "offset": offset,
+        }
         issue_filter = ""
         if issue:
-            issue_filter = "AND issue.slug=@issue"
-            parameters.append(bigquery.ScalarQueryParameter("issue", "STRING", issue))
+            issue_filter = "AND issue.slug=%(issue)s"
+            parameters["issue"] = issue
 
         sql = f"""
         WITH ranked_posts AS (
           SELECT
-            post.*,
+            post.platform_post_id,
+            post.posted_at,
+            post.text,
+            post.url,
+            post.engagement,
             m.full_name_he AS publisher,
             account.handle,
-            tag.confidence AS tag_confidence,
+            tag.confidence::float8 AS tag_confidence,
             tag.is_concrete_promise,
             issue.slug AS issue_slug,
             EXISTS (
               SELECT 1
-              FROM {self.prefix}.mk_issue_summary` summary
-              JOIN {self.prefix}.mk_issue_summary_supporting_post` link
+              FROM {self.prefix}.mk_issue_summary summary
+              JOIN {self.prefix}.mk_issue_summary_supporting_post link
                 ON link.summary_id=summary.id
-              JOIN {self.prefix}.social_post` linked_post
+              JOIN {self.prefix}.social_post linked_post
                 ON linked_post.id=link.post_id
               WHERE summary.mk_id=post.mk_id
                 AND summary.issue_id=tag.issue_id
                 AND linked_post.platform=post.platform
                 AND linked_post.platform_post_id=post.platform_post_id
             ) AS is_summary_source,
-            COALESCE(SAFE_CAST(JSON_VALUE(post.engagement, '$.like_count') AS INT64), 0)
-              + 2 * COALESCE(SAFE_CAST(JSON_VALUE(post.engagement, '$.retweet_count') AS INT64), 0)
-              + COALESCE(SAFE_CAST(JSON_VALUE(post.engagement, '$.reply_count') AS INT64), 0)
-              AS engagement_score,
+            (COALESCE({_json_int("post.engagement", "like_count")}, 0)
+              + 2 * COALESCE({_json_int("post.engagement", "retweet_count")}, 0)
+              + COALESCE({_json_int("post.engagement", "reply_count")}, 0)
+            )::bigint AS engagement_score,
             ROW_NUMBER() OVER (
               PARTITION BY post.platform, post.platform_post_id
               ORDER BY post.fetched_at DESC NULLS LAST, post.created_at DESC
             ) AS duplicate_rank
-          FROM {self.prefix}.social_post` post
-          JOIN {self.prefix}.mk` m ON m.id=post.mk_id
-          LEFT JOIN {self.prefix}.mk_social_account` account ON account.id=post.account_id
-          LEFT JOIN {self.prefix}.post_issue` tag ON tag.post_id=post.id
-          LEFT JOIN {self.prefix}.issue` issue ON issue.id=tag.issue_id
-          WHERE m.knesset_member_id=@mk_id
+          FROM {self.prefix}.social_post post
+          JOIN {self.prefix}.mk m ON m.id=post.mk_id
+          LEFT JOIN {self.prefix}.mk_social_account account ON account.id=post.account_id
+          LEFT JOIN {self.prefix}.post_issue tag ON tag.post_id=post.id
+          LEFT JOIN {self.prefix}.issue issue ON issue.id=tag.issue_id
+          WHERE m.knesset_member_id=%(mk_id)s
             AND post.platform='twitter'
             AND NOT post.is_deleted
             {issue_filter}
         ),
         deduplicated AS (
-          SELECT * EXCEPT(duplicate_rank)
+          SELECT
+            platform_post_id, posted_at, text, url, engagement, publisher, handle,
+            tag_confidence, is_concrete_promise, issue_slug, is_summary_source,
+            engagement_score
           FROM ranked_posts
           WHERE duplicate_rank=1
         )
         SELECT *, COUNT(*) OVER() AS total_count
         FROM deduplicated
         ORDER BY
-          IF(@has_issue, is_summary_source, FALSE) DESC,
-          IF(@has_issue, tag_confidence, NULL) DESC,
-          IF(@has_issue, is_concrete_promise, FALSE) DESC,
+          (CASE WHEN %(has_issue)s::boolean THEN is_summary_source ELSE FALSE END) DESC NULLS LAST,
+          (CASE WHEN %(has_issue)s::boolean THEN tag_confidence ELSE NULL END) DESC NULLS LAST,
+          (CASE WHEN %(has_issue)s::boolean THEN is_concrete_promise ELSE FALSE END) DESC NULLS LAST,
           engagement_score DESC,
-          posted_at DESC
-        LIMIT @limit OFFSET @offset
+          posted_at DESC NULLS LAST
+        LIMIT %(limit)s OFFSET %(offset)s
         """
-        parameters.append(bigquery.ScalarQueryParameter("has_issue", "BOOL", bool(issue)))
+        parameters["has_issue"] = bool(issue)
         rows = self._query(sql, parameters)
         items = [self._post_from_row(row) for row in rows]
         total = rows[0]["total_count"] if rows else 0
         return {"items": items, "total": total, "limit": limit, "offset": offset}
 
-    def _post_from_row(self, row: bigquery.Row) -> dict[str, Any]:
+    def _post_from_row(self, row: dict[str, Any]) -> dict[str, Any]:
         post_id = str(row["platform_post_id"])
         handle = row["handle"] or "unknown"
         posted_at = row["posted_at"]
@@ -720,20 +747,19 @@ class BigQueryRepository:
             return None
         post_id = post_key.rsplit(":", 1)[-1]
         sql = f"""
-        SELECT post.*, m.full_name_he AS publisher, account.handle,
+        SELECT
+          post.platform_post_id, post.posted_at, post.text, post.url, post.engagement,
+          m.full_name_he AS publisher, account.handle,
           FALSE AS is_summary_source,
-          NULL AS tag_confidence,
+          NULL::float8 AS tag_confidence,
           FALSE AS is_concrete_promise,
           0 AS engagement_score
-        FROM {self.prefix}.social_post` post
-        JOIN {self.prefix}.mk` m ON m.id=post.mk_id
-        LEFT JOIN {self.prefix}.mk_social_account` account ON account.id=post.account_id
-        WHERE post.platform='twitter' AND post.platform_post_id=@post_id
+        FROM {self.prefix}.social_post post
+        JOIN {self.prefix}.mk m ON m.id=post.mk_id
+        LEFT JOIN {self.prefix}.mk_social_account account ON account.id=post.account_id
+        WHERE post.platform='twitter' AND post.platform_post_id=%(post_id)s
         ORDER BY post.fetched_at DESC NULLS LAST, post.created_at DESC
         LIMIT 1
         """
-        rows = self._query(
-            sql,
-            [bigquery.ScalarQueryParameter("post_id", "STRING", post_id)],
-        )
+        rows = self._query(sql, {"post_id": post_id})
         return self._post_from_row(rows[0]) if rows else None

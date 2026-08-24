@@ -70,7 +70,6 @@ and evidence data through `/api`.
 │   ├── models.py
 │   └── repositories/
 ├── docs/
-│   ├── API_SUGGESTION.md
 │   └── DATA_MODEL.md
 └── tests/
     ├── test_api.py
