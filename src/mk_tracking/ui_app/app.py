@@ -139,4 +139,13 @@ def create_app(repository: Repository | None = None) -> FastAPI:
     return app
 
 
-app = create_app()
+def __getattr__(name: str):
+    """Build the app on first access of `app`, not on import.
+
+    `uvicorn mk_tracking.ui_app.app:app` still works, but importing this module
+    no longer requires a built frontend — which is what lets the tests run
+    without an `npm run build`.
+    """
+    if name == "app":
+        return create_app()
+    raise AttributeError(name)
