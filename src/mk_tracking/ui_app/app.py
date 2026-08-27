@@ -10,6 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from ..db_config import ConfigError, resolve_dsn, resolve_schema
@@ -67,6 +68,25 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class SpaStaticFiles(StaticFiles):
+    """Static files, with index.html as the fallback for unknown paths.
+
+    The frontend routes on the client (`/mk/mk-30695`), so those paths exist in
+    React Router but not on disk. Without the fallback they only work when the
+    app navigates to them in-page; a shared link or a refresh 404s.
+    """
+
+    async def get_response(self, path: str, scope):
+        try:
+            return await super().get_response(path, scope)
+        except HTTPException as error:
+            # /api/ is the router's; a miss there is a real 404, not a route
+            # the frontend knows about, and must not come back as HTML.
+            if error.status_code != 404 or scope["path"].startswith("/api/"):
+                raise
+            return await super().get_response("index.html", scope)
+
+
 def configured_repository() -> Repository:
     """Pick the serving backend. PostgreSQL is the only live one.
 
@@ -115,7 +135,7 @@ def create_app(repository: Repository | None = None) -> FastAPI:
             "The compiled UI is missing. Run `npm ci && npm run build` in ui/ "
             "before starting mkwork."
         )
-    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="frontend")
+    app.mount("/", SpaStaticFiles(directory=dist_dir, html=True), name="frontend")
     return app
 
 
