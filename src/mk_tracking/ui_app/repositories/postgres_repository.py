@@ -146,7 +146,11 @@ class PostgresRepository:
           SELECT
             s.mk_id,
             COUNT(*) AS issue_count,
-            jsonb_agg(jsonb_build_object('slug', i.slug, 'quality', s.quality)) AS coverage_rows
+            jsonb_agg(jsonb_build_object(
+              'slug', i.slug,
+              'quality', s.quality,
+              'rating', s.rating
+            )) AS coverage_rows
           FROM {self.prefix}.mk_issue_summary s
           JOIN {self.prefix}.issue i ON i.id=s.issue_id
           GROUP BY s.mk_id
@@ -200,6 +204,11 @@ class PostgresRepository:
                 item["slug"]: item["quality"]
                 for item in row["coverage_rows"]
             }
+            ratings = {
+                item["slug"]: item["rating"]
+                for item in row["coverage_rows"]
+                if item["rating"] is not None
+            }
             roles = set(row["current_roles"])
             if "coalition" in roles:
                 bloc = "קואליציה"
@@ -226,6 +235,7 @@ class PostgresRepository:
                     "hasData": bool(coverage),
                     "postCount": row["post_count"],
                     "coverage": coverage,
+                    "ratings": ratings,
                     "imageUrl": row["photo_url"] or "",
                     "account": row["twitter_handle"] or "",
                     "bio": row["bio_he"] or "",

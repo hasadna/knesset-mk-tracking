@@ -12,6 +12,7 @@ export interface MKMember {
   hasData: boolean;
   postCount: number;
   coverage: Record<string, TopicStatus>;
+  ratings?: Record<string, number>;
   imageUrl?: string;
   account?: string;
   bio?: string;

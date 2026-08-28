@@ -35,6 +35,7 @@ def test_list_mks_joins_party_account_and_counts(pg_repository, seeded_db) -> No
     assert member["current"] is True
     assert member["hasData"] is True
     assert member["coverage"] == {"test-issue": "strong"}  # jsonb_agg round-trip
+    assert member["ratings"] == {"test-issue": 4}  # rating carried through jsonb_agg
 
 
 def test_get_mk_finds_the_seeded_member(pg_repository, seeded_db) -> None:

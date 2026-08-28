@@ -8,6 +8,7 @@ import { useMKAnalysis } from './hooks/useMKAnalysis';
 import { ControlsHeader } from './components/ControlsHeader';
 import { StatusSummaryRow } from './components/StatusSummaryRow';
 import { PartyBoard } from './components/PartyBoard';
+import { PartyScoreAxis } from './components/PartyScoreAxis';
 import { ProfileDrawer } from './components/ProfileDrawer';
 import { SourceDialog } from './components/SourceDialog';
 import { WelcomeModal, useWelcomeState } from './components/WelcomeModal';
@@ -115,6 +116,8 @@ export const App: React.FC = () => {
 
   const selectedTopicTitle =
     selectedTopic === 'all' ? 'כל הנושאים' : topicMap.get(selectedTopic)?.title || '';
+
+  const selectedTopicDetails = selectedTopic === 'all' ? null : topicMap.get(selectedTopic);
 
   const activeMember = useMemo(() => {
     if (!selectedMemberKey) return null;
@@ -244,6 +247,22 @@ export const App: React.FC = () => {
         relevantCount={relevantCount}
         selectedTopicTitle={selectedTopicTitle}
       />
+
+      {selectedTopicDetails && (
+        <PartyScoreAxis
+          members={roster}
+          topic={selectedTopicDetails}
+          selectedParty={selectedParty}
+          onPartySelect={setSelectedParty}
+          onSelectMember={(name) => {
+            const member = roster.find((m) => m.name === name);
+            if (member) {
+              navigate(`/mk/${member.key}`);
+            }
+          }}
+          imageFor={imageFor}
+        />
+      )}
 
       <PartyBoard
         parties={partyGroups}

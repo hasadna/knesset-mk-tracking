@@ -24,6 +24,15 @@ class JsonRepository:
         self.analysis_by_issue = {issue["id"]: issue for issue in self.analysis}
         self.posts_by_key = {post["key"]: post for post in self.posts}
 
+        # Precomputed politician name -> {issue_id: rating}, so enriching a member
+        # is an O(1) lookup instead of rescanning every analysis issue per member.
+        self.ratings_by_member: dict[str, dict[str, int]] = {}
+        for issue in self.analysis:
+            for name, opinion in issue.get("members", {}).items():
+                rating = opinion.get("rating")
+                if rating is not None:
+                    self.ratings_by_member.setdefault(name, {})[issue["id"]] = rating
+
     def _load(self, relative_path: str) -> Any:
         path = self.root / relative_path
         return json.loads(path.read_text(encoding="utf-8"))
@@ -76,6 +85,7 @@ class JsonRepository:
     def _enriched_member(self, member: dict[str, Any]) -> dict[str, Any]:
         result = dict(member)
         result["category"] = "current_mk" if member.get("current") else "non_mk"
+        result["ratings"] = dict(self.ratings_by_member.get(member["name"], {}))
         account = member.get("account")
         stats = self.account_stats.get(account) if account else None
         if stats:
