@@ -387,8 +387,15 @@ body.drawer-open { overflow: hidden; }
   transition: transform .16s ease, opacity .16s ease, filter .16s ease;
 }
 
-.member-node:hover {
+.member-node:hover,
+.member-node:focus-within {
   transform: translateY(-3px);
+  /* transform makes this card its own stacking context, trapping the badge
+     tooltip (z-index: 999999) inside it. Neighbouring cards leak their avatar
+     images (z-index: 2) and former-dot (z-index: 10) into the grid's stacking
+     context, so without lifting the whole card those paint over the tooltip.
+     A z-index above 10 floats the hovered card, tooltip included, above them. */
+  z-index: 20;
 }
 
 .member-node.dimmed {
