@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from mk_tracking.summary_creation.models import Opinion, PoliticianAnalysis
-from mk_tracking.summary_creation.pipeline import (
+from mk_tracking.process.summaries.models import Opinion, PoliticianAnalysis
+from mk_tracking.process.summaries.pipeline import (
     assemble,
     generate,
     normalize_analysis,

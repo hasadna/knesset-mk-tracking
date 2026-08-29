@@ -20,8 +20,6 @@ data/*
 x_api_collect/data/
 ui/data/
 ui/raw/
-summary_creation/output/
-summary_creation/checkpoints/
 
 # Temporary files
 found_mks.*

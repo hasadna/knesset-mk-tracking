@@ -26,8 +26,8 @@ def run_full_database(
     model: str,
     top_posts_per_issue: int = 10,
     min_confidence: float = 0.20,
-    output_dir: Path = Path("summary_creation/output/full-run"),
-    checkpoint_dir: Path = Path("summary_creation/checkpoints"),
+    output_dir: Path = Path("data/summaries/output/full-run"),
+    checkpoint_dir: Path = Path("data/summaries/checkpoints"),
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)

@@ -59,14 +59,14 @@ fi
 echo "Step 5: Generating Summaries..."
 if [ "$ALLOW_BQ" = "1" ]; then
     PROJECT_ID="${GOOGLE_CLOUD_PROJECT:?GOOGLE_CLOUD_PROJECT must be set}"
-    uv run mk-summary run-db \
+    uv run process-summaries run-db \
       --project "$PROJECT_ID" \
       --dataset "mk_tracking" \
       --top-posts-per-issue 5 \
-      --output-dir summary_creation/output/full-run \
-      --checkpoints summary_creation/checkpoints
+      --output-dir data/summaries/output/full-run \
+      --checkpoints data/summaries/checkpoints
 else
-    skip_unported "mk-summary run-db (BigQuerySource + BigQuerySink)"
+    skip_unported "process-summaries run-db (BigQuerySource + BigQuerySink)"
 fi
 
 echo "Daily Pipeline Completed."
