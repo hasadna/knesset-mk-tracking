@@ -930,7 +930,7 @@
                 <div class="step-num-badge">1</div>
                 <div class="step-title">שלב 1: איסוף נתונים גולמיים מהכנסת ומהרשתות החברתיות</div>
               </div>
-              <span class="code-tag">x_api_collect/ & knesset_data</span>
+              <span class="code-tag">src/mk_tracking/collect/x/ & src/mk_tracking/collect/knesset/</span>
             </div>
             <div class="step-grid">
               <div>
@@ -963,7 +963,7 @@
                 <div class="step-num-badge">2</div>
                 <div class="step-title">שלב 2: יצירת וקטורים אקטיביים ואשכול K-Means לסנון רעשים</div>
               </div>
-              <span class="code-tag">big_query_to_data.py</span>
+              <span class="code-tag">src/mk_tracking/process/embeddings/big_query_to_data.py</span>
             </div>
             <div class="step-grid">
               <div>
@@ -996,7 +996,7 @@
                 <div class="step-num-badge">3</div>
                 <div class="step-title">שלב 3: סיווג ציוצים לפי 7 נושאי הליבה (Issue Scoring)</div>
               </div>
-              <span class="code-tag">src/mk_tracking/bigquery_issue_scoring.py</span>
+              <span class="code-tag">src/mk_tracking/process/issue_scoring/bigquery_issue_scoring.py</span>
             </div>
             <div class="step-grid">
               <div>
@@ -1028,7 +1028,7 @@
                 <div class="step-num-badge">4</div>
                 <div class="step-title">שלב 4: מנוע סיכום עמדות ונימוקים בבינה מלאכותית (AI Summarization)</div>
               </div>
-              <span class="code-tag">src/mk_tracking/summary_creation/</span>
+              <span class="code-tag">src/mk_tracking/process/summaries/</span>
             </div>
             <div class="step-grid">
               <div>
@@ -1059,7 +1059,7 @@
                 <div class="step-num-badge">5</div>
                 <div class="step-title">שלב 5: סיווג חוקים ומימוש מודל הצבעות לקריאה מהירה</div>
               </div>
-              <span class="code-tag">bill_issues/cli.py & v_mk_issue_bill_votes</span>
+              <span class="code-tag">src/mk_tracking/process/bill_issues/cli.py & v_mk_issue_bill_votes</span>
             </div>
             <div class="step-grid">
               <div>

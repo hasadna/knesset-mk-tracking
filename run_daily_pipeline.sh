@@ -27,7 +27,7 @@ echo "Step 1: Collecting X (Twitter) data..."
 if [ "$ALLOW_BQ" = "1" ]; then
     uv run collect-x --all-current-mks --push-bigquery
 else
-    skip_unported "x-api-collect (--push-bigquery has no PostgreSQL counterpart)"
+    skip_unported "collect-x (--push-bigquery has no PostgreSQL counterpart)"
 fi
 
 # 2. Collect Knesset data — ported: writes to PostgreSQL.

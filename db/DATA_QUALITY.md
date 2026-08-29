@@ -31,7 +31,7 @@ crosswalk resolves vote identities only for the 120 *current* MKs, so the API
 fetch covers those and the export's votes by former MKs are not re-fetched.
 `SELECT count(DISTINCT mk_id) FROM mk_vote` is 120, against 1,186 MKs in the
 roster. If the historical votes matter, they need a wider crosswalk — the
-mechanism is `db/vote_mkid_crosswalk.json`, rebuilt by
+mechanism is `data/seed/vote_mkid_crosswalk.json`, rebuilt by
 `build_vote_mkid_crosswalk.py`. A further 221 fetched rows were dropped as
 referencing an event the fetch did not return.
 

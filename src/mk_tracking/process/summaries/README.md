@@ -1,8 +1,8 @@
 # MK Summary Creator
 
 Creates the `analysis.json` consumed by the FastAPI application in
-`../mk_work`. Gemini runs on Vertex AI, but all evidence and citations are
-restricted to `mk_work/data/tweets.normalized.json`.
+`ui/`. Gemini runs on Vertex AI, but all evidence and citations are
+restricted to `ui/data/tweets.normalized.json`.
 
 ## Safety properties
 
@@ -34,7 +34,7 @@ The SDK uses `GOOGLE_CLOUD_PROJECT` and, optionally,
 Write prompts locally:
 
 ```powershell
-uv run mk-summary preview --politician netanyahu
+uv run process-summaries preview --politician netanyahu
 ```
 
 The selector accepts an account, Hebrew name, or roster key. Omit it to preview
@@ -46,15 +46,15 @@ Start with one politician:
 
 ```powershell
 $env:GOOGLE_CLOUD_PROJECT="your-project-id"
-uv run mk-summary generate --politician netanyahu
+uv run process-summaries generate --politician netanyahu
 ```
 
 After reviewing the checkpoint, delete `output/checkpoints` and run the complete
 dataset:
 
 ```powershell
-uv run mk-summary generate
-uv run mk-summary validate output/analysis.candidate.json
+uv run process-summaries generate
+uv run process-summaries validate output/analysis.candidate.json
 ```
 
 Generation reuses existing checkpoints. Delete a politician's checkpoint to
@@ -72,11 +72,11 @@ The rating is required for `strong` and `partial` evidence and is `null` for
 Publish only a complete candidate:
 
 ```powershell
-uv run mk-summary publish output/analysis.candidate.json
+uv run process-summaries publish output/analysis.candidate.json
 ```
 
 This validates the full member set, creates
-`../mk_work/data/analysis.json.backup`, and atomically replaces the analysis.
+`ui/data/analysis.json.backup`, and atomically replaces the analysis.
 
 The default model is `gemini-2.5-flash`; override it with `--model`.
 
@@ -86,7 +86,7 @@ Read one politician, the current issue taxonomy, and Twitter posts directly
 from the live schema while keeping all generated output local:
 
 ```powershell
-uv run mk-summary generate-db `
+uv run process-summaries generate-db `
   --project $env:GOOGLE_CLOUD_PROJECT `
   --dataset mk_tracking `
   --politician netanyahu `
@@ -103,7 +103,7 @@ summaries or run rows to BigQuery.
 Add `--write-db` to publish the fully validated local result:
 
 ```powershell
-uv run mk-summary generate-db `
+uv run process-summaries generate-db `
   --project $env:GOOGLE_CLOUD_PROJECT `
   --dataset mk_tracking `
   --politician netanyahu `

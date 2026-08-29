@@ -11,7 +11,7 @@ This document serves as the operational guide for developers and AI coding assis
 | **Frontend** | React 19, Vite, TypeScript, Vanilla CSS | `ui/` |
 | **Backend API** | FastAPI, Uvicorn, Python 3.11 | `src/mk_tracking/ui_app/` |
 | **Database** | GCP BigQuery (`mk_tracking` dataset) | `db/` & `docs/DB_SCHEMA.md` |
-| **AI / Pipeline** | Gemini 2 (`gemini-embedding-2`, `gemini-2.5-flash`), `uv` | `src/mk_tracking/summary_creation/`, `big_query_to_data.py` |
+| **AI / Pipeline** | Gemini 2 (`gemini-embedding-2`, `gemini-2.5-flash`), `uv` | `src/mk_tracking/process/summaries/`, `src/mk_tracking/process/embeddings/big_query_to_data.py` |
 | **Hosting & Container** | GCP Cloud Run, Artifact Registry, Cloud Build | `Dockerfile`, `run_daily_pipeline.sh` |
 
 ---
@@ -164,18 +164,18 @@ To avoid uncommitted file clutter on `main` or merge conflicts when deploying:
 * **Ingestion Contract:** [`INGESTION_CONTRACT.md`](INGESTION_CONTRACT.md)
 
 ### BigQuery Ingestion Rules
-1. **Never use `CREATE OR REPLACE TABLE` on shared tables:** It wipes table metadata, PK/FK non-enforced constraints, column descriptions, partitioning, and default generators. Use `ALTER TABLE` or apply `db/schema.bq.sql`.
+1. **Never use `CREATE OR REPLACE TABLE` on shared tables:** It wipes table metadata, PK/FK non-enforced constraints, column descriptions, partitioning, and default generators. Use `ALTER TABLE` or apply `db/schema.sql`.
 2. **Use MERGE on Natural Keys:** BigQuery does not enforce unique constraints. All pipeline writes must use `MERGE` queries as described in `docs/INGESTION_CONTRACT.md`.
 3. **No Streaming Inserts:** Avoid `insertAll` due to duplicate risks and ~90 minute row freezing in streaming buffers.
 
 ### Running Embedding & Summary Generation
 * **Embedding pipeline (requires `$GOOGLE_CLOUD_PROJECT` set):**
   ```bash
-  uv run big_query_to_data.py
+  uv run process-embeddings
   ```
 * **Summary generation (requires `$GOOGLE_CLOUD_PROJECT` set):**
   ```bash
-  uv run mk-summary run-db \
+  uv run process-summaries run-db \
     --project $GOOGLE_CLOUD_PROJECT \
     --dataset mk_tracking \
     --top-posts-per-issue 5

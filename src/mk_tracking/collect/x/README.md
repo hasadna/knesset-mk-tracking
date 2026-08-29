@@ -1,4 +1,4 @@
-# x-api-collect
+# collect-x
 
 Python module managed with `uv` for fetching X (Twitter) account data cleanly and pushing to BigQuery.
 
@@ -20,22 +20,22 @@ export GOOGLE_APPLICATION_CREDENTIALS="path/to/gcp_credentials.json"
 
 ### 1. Fetch Latest Tweets for an Account
 ```bash
-uv run x-api-collect --account knesset_il --count 100
+uv run collect-x --account knesset_il --count 100
 ```
 
 ### 2. Fetch Tweets in a Date Range (`--since` / `--until`)
 ```bash
-uv run x-api-collect --account knesset_il --since 2026-07-01 --until 2026-07-30
+uv run collect-x --account knesset_il --since 2026-07-01 --until 2026-07-30
 ```
 
 ### 3. Fetch Tweets & Export to BigQuery (`--push-bigquery`)
 ```bash
-uv run x-api-collect --account knesset_il --since 2026-07-01 --push-bigquery
+uv run collect-x --account knesset_il --since 2026-07-01 --push-bigquery
 ```
 
 Specify a custom BigQuery table if needed:
 ```bash
-uv run x-api-collect --account knesset_il --push-bigquery --bq-table "project_id.dataset_id.table_id"
+uv run collect-x --account knesset_il --push-bigquery --bq-table "project_id.dataset_id.table_id"
 ```
 
 ## Acquiring fresh posts without duplicates
@@ -161,7 +161,7 @@ VALUES (
 
 Use a batch load job, not `insertAll` or `insert_rows_json`, and delete the
 temporary staging table after the merge. The general ingestion requirements
-also apply; see [`docs/INGESTION_CONTRACT.md`](../docs/INGESTION_CONTRACT.md).
+also apply; see [`docs/INGESTION_CONTRACT.md`](../../../../docs/INGESTION_CONTRACT.md).
 
 ### Verify every run
 

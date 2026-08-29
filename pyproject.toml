@@ -12,9 +12,14 @@ dependencies = [
     "cachetools>=7.1.6",
     "fastapi>=0.116,<1",
     "google-cloud-bigquery>=3.42.2",
+    "google-cloud-storage>=2.14.0",
     "google-genai>=2.15.0",
+    "httpx>=0.28,<1",
     "numpy>=2.4.6",
     "psycopg[binary]>=3.2",
+    "pydantic>=2.9.0",
+    "pymupdf>=1.23.0",
+    "python-docx>=1.1.0",
     "scikit-learn>=1.9.0",
     "tqdm>=4.70,<5",
     "uvicorn>=0.35,<1",
@@ -22,15 +27,23 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28,<1",
     "playwright>=1.54,<2",
     "pytest>=8.2",
     "ruff>=0.6",
 ]
 
+# Stage-named console scripts. The name is stable for callers; the module
+# path behind it follows the collect_*/process_* package layout.
+# No process-issue-scoring (bigquery_issue_scoring is a library, no main())
+# and no analyze-votes (its scripts run at import with no import-safe entry
+# point) — see the reorg brief.
 [project.scripts]
-mk-tracking = "mk_tracking.cli:main"
-mk-summary = "mk_tracking.summary_creation.cli:main"
+collect-knesset = "mk_tracking.collect.knesset.upload_over_to_postgres:main"
+collect-x = "mk_tracking.collect.x.cli:run_cli"
+collect-x-accounts = "mk_tracking.collect.x.accounts:populate"
+process-embeddings = "mk_tracking.process.embeddings.big_query_to_data:main"
+process-bill-issues = "mk_tracking.process.bill_issues.cli:main"
+process-summaries = "mk_tracking.process.summaries.cli:main"
 mk-work = "mk_tracking.ui_app:main"
 mkwork = "mk_tracking.ui_app:main"
 

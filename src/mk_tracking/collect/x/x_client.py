@@ -31,7 +31,7 @@ class XApiClient:
             base_url=X_API_BASE,
             headers={
                 "Authorization": f"Bearer {self.bearer_token}",
-                "User-Agent": "x-api-collect/0.1.0",
+                "User-Agent": "collect-x/0.1.0",
             },
             timeout=10.0,
         )

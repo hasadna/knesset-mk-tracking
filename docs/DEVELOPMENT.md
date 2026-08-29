@@ -83,7 +83,7 @@ The pipeline uses Google BigQuery as the canonical data warehouse. All processin
 
 ### BigQuery best practices
 
-**Never use `CREATE OR REPLACE TABLE` on shared tables.** This wipes all metadata unless explicitly re-declared. Use `ALTER TABLE` for additive changes. If a full rebuild is needed, use the canonical `db/schema.bq.sql` (the source of truth for all metadata) and copy data back.
+**Never use `CREATE OR REPLACE TABLE` on shared tables.** This wipes all metadata unless explicitly re-declared. Use `ALTER TABLE` for additive changes. If a full rebuild is needed, use the canonical `db/schema.sql` (the source of truth for all metadata) and copy data back.
 
 What gets silently lost when metadata is not preserved:
 
@@ -103,8 +103,8 @@ For detailed documentation, see:
 | Schema reference (tables, columns, keys) | `docs/DB_SCHEMA.md` |
 | Pipeline → DB ingestion contract | `docs/INGESTION_CONTRACT.md` |
 | Ingestion MERGE script + staging schemas | `db/merge_ingest.bq.sql`, `db/staging/*.schema.json` |
-| BigQuery DDL v4 (deployed) | `db/schema.bq.sql` |
-| BigQuery seed data (deployed) | `db/seed.bq.sql` |
+| BigQuery DDL v4 (deployed) | `db/schema.sql` |
+| BigQuery seed data (deployed) | `db/seed.sql` |
 | Knesset OData API docs | http://oknesset-api.readthedocs.io/en/latest/ |
 
 ### Initialization (first time)
@@ -112,14 +112,14 @@ For detailed documentation, see:
 After deploying schema, initialize BigQuery tables:
 
 ```bash
-bq query --use_legacy_sql=false < db/schema.bq.sql
-bq query --use_legacy_sql=false < db/seed.bq.sql
+bq query --use_legacy_sql=false < db/schema.sql
+bq query --use_legacy_sql=false < db/seed.sql
 ```
 
 Initialize issue anchor embeddings (one-time):
 
 ```bash
-uv run big_query_to_data.py --initialize-anchors
+uv run process-embeddings --initialize-anchors
 ```
 
 This embeds the seven live issues' hand-curated semantic anchors and inserts them into BigQuery. Subsequent runs omit this flag and assume anchors already exist.
@@ -245,8 +245,8 @@ uv sync --frozen     # install from lockfile
 This repo contains three independent uv-managed Python projects sharing a root lock:
 
 - **Main**: embeddings, clustering, FastAPI UI backend
-- **x_api_collect/** — X API data collection (collects MK tweets)
-- **bill_issues/** — Bill-to-issue classification using Gemini
+- **src/mk_tracking/collect/x/** — X API data collection (collects MK tweets)
+- **src/mk_tracking/process/bill_issues/** — Bill-to-issue classification using Gemini
 
 The `Dockerfile` and `run_daily_pipeline.sh` orchestrate all three.
 
