@@ -34,7 +34,13 @@ from google.cloud import bigquery
 from sklearn.cluster import KMeans
 from tqdm.auto import tqdm
 
-from mk_tracking.bigquery_issue_scoring import (
+from mk_tracking.pipeline import (
+    DEFAULT_EMBEDDING_DIMENSIONS,
+    EMBEDDING_MODEL,
+    GeneratedText,
+    VertexAIService,
+)
+from mk_tracking.process.issue_scoring.bigquery_issue_scoring import (
     DEFAULT_SOFTMAX_TEMPERATURE,
     compute_missing_issue_scores,
     fetch_existing_post_issue_pairs,
@@ -46,12 +52,6 @@ from mk_tracking.bigquery_issue_scoring import (
     sync_missing_tweet_embeddings,
     upload_issue_anchors,
     upload_issue_scores,
-)
-from mk_tracking.pipeline import (
-    DEFAULT_EMBEDDING_DIMENSIONS,
-    EMBEDDING_MODEL,
-    GeneratedText,
-    VertexAIService,
 )
 
 DEFAULT_PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT")

@@ -1,20 +1,12 @@
 from __future__ import annotations
 
-import importlib.util
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 
 from mk_tracking.pipeline import EMBEDDING_MODEL
-
-SCRIPT_PATH = Path(__file__).parents[1] / "big_query_to_data.py"
-SPEC = importlib.util.spec_from_file_location("big_query_to_data", SCRIPT_PATH)
-assert SPEC is not None and SPEC.loader is not None
-MODULE = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = MODULE
-SPEC.loader.exec_module(MODULE)
+from mk_tracking.process.embeddings import big_query_to_data as MODULE
 
 GeneratedText = MODULE.GeneratedText
 DEFAULT_K = MODULE.DEFAULT_K

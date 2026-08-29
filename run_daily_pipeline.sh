@@ -50,9 +50,9 @@ fi
 # 4. Embeddings & clustering
 echo "Step 4: Running Embeddings and Clustering Pipeline..."
 if [ "$ALLOW_BQ" = "1" ]; then
-    uv run python big_query_to_data.py
+    uv run process-embeddings
 else
-    skip_unported "big_query_to_data.py (reads and writes BigQuery)"
+    skip_unported "process-embeddings (reads and writes BigQuery)"
 fi
 
 # 5. Summaries
