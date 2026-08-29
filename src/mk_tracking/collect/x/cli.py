@@ -5,10 +5,8 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from bq_export import DEFAULT_TABLE_ID, push_tweets_to_bigquery
-from x_client import XApiClient
+from .bq_export import DEFAULT_TABLE_ID, push_tweets_to_bigquery
+from .x_client import XApiClient
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -89,13 +87,7 @@ def save_result(data: dict, output_dir: str, output_file: str | None, account: s
     return str(file_path.resolve())
 
 
-import argparse
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from bq_export import (
+from .bq_export import (
     calculate_missing_date_intervals,
     get_active_mk_twitter_accounts,
     get_mk_post_date_ranges,

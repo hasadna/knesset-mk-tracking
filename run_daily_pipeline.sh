@@ -25,12 +25,7 @@ echo "Starting Daily Pipeline..."
 # 1. Collect new tweets for all MKs
 echo "Step 1: Collecting X (Twitter) data..."
 if [ "$ALLOW_BQ" = "1" ]; then
-    cd x_api_collect
-    if [ -z "$X_BEARER_TOKEN" ]; then
-        echo "Warning: X_BEARER_TOKEN is not set. This step might fail."
-    fi
-    uv run x-api-collect --all-current-mks --push-bigquery
-    cd ..
+    uv run collect-x --all-current-mks --push-bigquery
 else
     skip_unported "x-api-collect (--push-bigquery has no PostgreSQL counterpart)"
 fi

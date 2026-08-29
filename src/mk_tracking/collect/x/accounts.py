@@ -1,13 +1,10 @@
 import json
 import os
-import sys
 import urllib.parse
 import urllib.request
 import uuid
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from bq_export import get_active_mk_twitter_accounts, get_bigquery_client
+from .bq_export import get_active_mk_twitter_accounts, get_bigquery_client
 
 PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not PROJECT_ID:

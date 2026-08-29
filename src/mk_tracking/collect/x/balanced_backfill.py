@@ -8,7 +8,8 @@ import pathlib
 import uuid
 
 from google.cloud import bigquery
-from x_client import XApiClient
+
+from .x_client import XApiClient
 
 PROJECT = os.environ.get("GOOGLE_CLOUD_PROJECT")
 if not PROJECT:
