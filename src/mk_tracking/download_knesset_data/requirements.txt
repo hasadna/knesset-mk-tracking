@@ -1,9 +1,0 @@
-# System Prerequisites:
-# ---------------------
-# - `curl` CLI binary: Required to bypass Knesset Reblaze WAF anti-bot protection on fs.knesset.gov.il.
-#   (Pre-installed on Linux, macOS, and Windows 10/11)
-
-# Python Package Dependencies:
-# ---------------------------
-google-cloud-bigquery>=3.0.0
-google-cloud-storage>=2.0.0

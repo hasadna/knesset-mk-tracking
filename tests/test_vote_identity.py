@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from mk_tracking.download_knesset_data.vote_identity import (
+from mk_tracking.collect.knesset.vote_identity import (
     build_exact_crosswalk,
     load_crosswalk,
     normalize_hebrew_name,

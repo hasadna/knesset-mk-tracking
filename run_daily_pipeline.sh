@@ -32,7 +32,7 @@ fi
 
 # 2. Collect Knesset data — ported: writes to PostgreSQL.
 echo "Step 2: Collecting Knesset Data (Bills, Votes, etc.)..."
-uv run python -m mk_tracking.download_knesset_data.upload_over_to_postgres
+uv run python -m mk_tracking.collect.knesset.upload_over_to_postgres
 
 # 3. Evaluate Bills for Issues
 echo "Step 3: Evaluating Bills for Issues..."

@@ -63,18 +63,18 @@ from typing import Any
 
 import psycopg
 
-from mk_tracking.db_config import ConfigError, resolve_dsn, resolve_schema
-from mk_tracking.download_knesset_data.over_api import (
+from mk_tracking.collect.knesset.over_api import (
     fetch_over_vote_events,
     fetch_over_vote_results,
     map_vote_result,
 )
-from mk_tracking.download_knesset_data.vote_identity import (
+from mk_tracking.collect.knesset.vote_identity import (
     load_crosswalk,
     resolve_vote_results,
 )
+from mk_tracking.db_config import ConfigError, resolve_dsn, resolve_schema
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_VOTE_CROSSWALK = PROJECT_ROOT / "db" / "vote_mkid_crosswalk.json"
 DEFAULT_SCHEMA = "mk_tracking"
 STAGING_PROGRESS_EVERY = 100_000

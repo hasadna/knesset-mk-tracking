@@ -9,7 +9,7 @@ RUN npm run build
 # ---- Backend runtime stage ----
 FROM python:3.11-slim
 
-# Install system dependencies (curl for download_knesset_data and for uv)
+# Install system dependencies (curl for collect/knesset and for uv)
 RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install uv
