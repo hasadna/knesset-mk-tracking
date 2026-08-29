@@ -37,14 +37,12 @@ uv run python -m mk_tracking.collect.knesset.upload_over_to_postgres
 # 3. Evaluate Bills for Issues
 echo "Step 3: Evaluating Bills for Issues..."
 if [ "$ALLOW_BQ" = "1" ]; then
-    cd bill_issues
     if [ -z "$GEMINI_API_KEY" ]; then
         echo "Warning: GEMINI_API_KEY is not set. This step might fail if Vertex AI fallback is not configured or fails."
     fi
-    uv run bill-issues
-    cd ..
+    uv run process-bill-issues
 else
-    skip_unported "bill-issues (INSERTs into the BigQuery mk_tracking.bill_issue table)"
+    skip_unported "process-bill-issues (INSERTs into the BigQuery mk_tracking.bill_issue table)"
 fi
 
 # 4. Embeddings & clustering
