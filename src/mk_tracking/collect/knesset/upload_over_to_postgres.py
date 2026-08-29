@@ -75,7 +75,7 @@ from mk_tracking.collect.knesset.vote_identity import (
 from mk_tracking.db_config import ConfigError, resolve_dsn, resolve_schema
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-DEFAULT_VOTE_CROSSWALK = PROJECT_ROOT / "db" / "vote_mkid_crosswalk.json"
+DEFAULT_VOTE_CROSSWALK = PROJECT_ROOT / "data" / "seed" / "vote_mkid_crosswalk.json"
 DEFAULT_SCHEMA = "mk_tracking"
 STAGING_PROGRESS_EVERY = 100_000
 

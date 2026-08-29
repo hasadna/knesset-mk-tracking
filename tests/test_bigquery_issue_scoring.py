@@ -91,7 +91,7 @@ def _cluster_centroids() -> np.ndarray:
 
 @pytest.mark.xfail(
     reason=(
-        "Known pre-existing failure: db/issue_anchors.json declares 7 issues but "
+        "Known pre-existing failure: data/seed/issue_anchors.json declares 7 issues but "
         "bigquery_issue_scoring.EXPECTED_ISSUE_COUNT is 8. Tracked as the 'issue "
         "taxonomy count' item. Remove this marker once the taxonomy is reconciled."
     ),

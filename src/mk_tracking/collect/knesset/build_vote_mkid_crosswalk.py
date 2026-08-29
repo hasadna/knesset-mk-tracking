@@ -1,7 +1,7 @@
 """Generate the local vote identity crosswalk from PostgreSQL + the Over API.
 
 Reads the current MK roster from PostgreSQL and the vote identities from the
-Over API, then writes db/vote_mkid_crosswalk.json. It never writes to a database.
+Over API, then writes data/seed/vote_mkid_crosswalk.json. It never writes to a database.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from .over_api import fetch_all_over_sql
 from .vote_identity import build_exact_crosswalk, validate_crosswalk
 
 DEFAULT_SCHEMA = "mk_tracking"
-DEFAULT_OUTPUT = Path("db/vote_mkid_crosswalk.json")
+DEFAULT_OUTPUT = Path("data/seed/vote_mkid_crosswalk.json")
 
 
 def fetch_current_mks(conninfo: str, schema: str = DEFAULT_SCHEMA) -> list[dict[str, object]]:

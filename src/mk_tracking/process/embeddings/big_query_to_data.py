@@ -77,9 +77,9 @@ PRICING_SOURCE = (
 DEFAULT_EMBEDDING_FILE = Path("data/processed/tweet_embeddings.npz")
 DEFAULT_CENTROID_FILE = Path("data/processed/tweet_cluster_centroids.npz")
 DEFAULT_RUN_HISTORY_FILE = Path("data/processed/big_query_to_data_run_history.jsonl")
-DEFAULT_ANCHOR_DEFINITIONS_FILE = Path("db/issue_anchors.json")
+DEFAULT_ANCHOR_DEFINITIONS_FILE = Path("data/seed/issue_anchors.json")
 DEFAULT_ANCHOR_EMBEDDING_FILE = Path("data/processed/issue_anchor_embeddings.npz")
-DEFAULT_CLUSTER_FLAGS_FILE = Path("db/tweet_cluster_flags.json")
+DEFAULT_CLUSTER_FLAGS_FILE = Path("data/seed/tweet_cluster_flags.json")
 
 _PROJECT_PATTERN = re.compile(r"^[a-z][a-z0-9-]{4,61}[a-z0-9]$")
 _IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")

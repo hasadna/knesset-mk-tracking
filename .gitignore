@@ -16,8 +16,8 @@ wheels/
 data/*
 # The issue taxonomy is source, not output. The pipeline and
 # tests/test_pipeline.py both depend on it.
-!data/subjects.json
-x_api_collect/data/
+!data/seed/
+!data/seed/**
 ui/data/
 ui/raw/
 

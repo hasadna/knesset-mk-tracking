@@ -73,7 +73,7 @@ Measured and found to hold, so enforced without qualification:
 - Embeddings: 9,633 posts, 72 anchors and 90 centroids all carry exactly 3,072
   finite components. `bill.embedding` is `[]` for all 23,240 rows — unpopulated.
 - The taxonomy is the v6 nine-issue set, matching `docs/ISSUES.md` and
-  `db/seed.bq.sql` exactly. (`bigquery_issue_scoring.EXPECTED_ISSUE_COUNT` is
+  `db/seed.sql` exactly. (`bigquery_issue_scoring.EXPECTED_ISSUE_COUNT` is
   still 7 and will raise against this data — fix it independently.)
 
 ## Load result

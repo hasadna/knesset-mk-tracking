@@ -1,8 +1,0 @@
-[
-  {"name": "issue_slug", "type": "STRING", "mode": "REQUIRED"},
-  {"name": "anchor_index", "type": "INT64", "mode": "REQUIRED"},
-  {"name": "language", "type": "STRING", "mode": "REQUIRED"},
-  {"name": "text", "type": "STRING", "mode": "REQUIRED"},
-  {"name": "embedding", "type": "FLOAT", "mode": "REPEATED"},
-  {"name": "embedding_model", "type": "STRING", "mode": "REQUIRED"}
-]
