@@ -15,7 +15,7 @@ from mk_tracking.pipeline import (
 )
 
 DEFAULT_RAW_TWEETS = Path("data/last_100_tweets_10_mk")
-DEFAULT_SUBJECTS = Path("data/subjects.json")
+DEFAULT_SUBJECTS = Path("data/seed/subjects.json")
 DEFAULT_TWEET_TABLE = Path("data/processed/tweets.jsonl")
 DEFAULT_EMBEDDED_TWEETS = Path("data/processed/tweets_with_embeddings.jsonl")
 DEFAULT_EMBEDDED_SUBJECTS = Path("data/processed/subjects_with_embeddings.jsonl")

@@ -31,7 +31,7 @@ crosswalk resolves vote identities only for the 120 *current* MKs, so the API
 fetch covers those and the export's votes by former MKs are not re-fetched.
 `SELECT count(DISTINCT mk_id) FROM mk_vote` is 120, against 1,186 MKs in the
 roster. If the historical votes matter, they need a wider crosswalk — the
-mechanism is `db/vote_mkid_crosswalk.json`, rebuilt by
+mechanism is `data/seed/vote_mkid_crosswalk.json`, rebuilt by
 `build_vote_mkid_crosswalk.py`. A further 221 fetched rows were dropped as
 referencing an event the fetch did not return.
 
@@ -73,7 +73,7 @@ Measured and found to hold, so enforced without qualification:
 - Embeddings: 9,633 posts, 72 anchors and 90 centroids all carry exactly 3,072
   finite components. `bill.embedding` is `[]` for all 23,240 rows — unpopulated.
 - The taxonomy is the v6 nine-issue set, matching `docs/ISSUES.md` and
-  `db/seed.bq.sql` exactly. (`bigquery_issue_scoring.EXPECTED_ISSUE_COUNT` is
+  `db/seed.sql` exactly. (`bigquery_issue_scoring.EXPECTED_ISSUE_COUNT` is
   still 7 and will raise against this data — fix it independently.)
 
 ## Load result

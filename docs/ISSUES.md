@@ -3,7 +3,7 @@
 **Status:** v6 taxonomy, team consensus, deployed 2026-07-31. This closed list is
 the single source for classifying social posts and mapping bills/vote events.
 Pipelines must never invent issue slugs; changes go through this doc, then
-`db/seed.bq.sql`.
+`db/seed.sql`.
 
 **How v6 was decided:** the team accepted *both* prior selection principles —
 hard vote-measurable topics (v3/"ground truth") *and* discourse axes (v5) — then
@@ -79,8 +79,8 @@ quality is `strong` or `partial`; absence of evidence is never rendered as the
 midpoint 3.
 
 Semantic anchors: 8 per issue (4 Hebrew, 2 English, 2 Arabic) in
-`db/issue_anchors.json` (version 3), used by the embedding scorer
-(`big_query_to_data.py`) — max-cosine per issue, softmax across issues.
+`data/seed/issue_anchors.json` (version 3), used by the embedding scorer
+(`src/mk_tracking/process/embeddings/big_query_to_data.py`) — max-cosine per issue, softmax across issues.
 
 ## Reset behavior
 

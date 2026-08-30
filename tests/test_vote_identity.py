@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from mk_tracking.download_knesset_data.vote_identity import (
+from mk_tracking.collect.knesset.vote_identity import (
     build_exact_crosswalk,
     load_crosswalk,
     normalize_hebrew_name,
@@ -63,7 +63,7 @@ def test_validate_crosswalk_rejects_duplicate_source_id() -> None:
 
 
 def test_committed_crosswalk_covers_the_authoritative_roster() -> None:
-    path = Path(__file__).parents[1] / "db" / "vote_mkid_crosswalk.json"
+    path = Path(__file__).parents[1] / "data" / "seed" / "vote_mkid_crosswalk.json"
     payload = json.loads(path.read_text(encoding="utf-8"))
     rows = payload["mappings"]
     validate_crosswalk(rows)

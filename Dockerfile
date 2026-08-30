@@ -9,7 +9,7 @@ RUN npm run build
 # ---- Backend runtime stage ----
 FROM python:3.11-slim
 
-# Install system dependencies (curl for download_knesset_data and for uv)
+# Install system dependencies (curl for collect/knesset and for uv)
 RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -27,12 +27,6 @@ COPY --from=ui-build /app/ui/dist /app/ui/dist
 
 # Install dependencies for the main project
 RUN uv sync --frozen
-
-# Install dependencies for the x_api_collect sub-project
-RUN cd x_api_collect && uv sync --frozen
-
-# Install dependencies for the bill_issues sub-project
-RUN cd bill_issues && uv sync --frozen
 
 # Ensure scripts are executable
 RUN chmod +x /app/run_daily_pipeline.sh

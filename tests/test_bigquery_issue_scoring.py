@@ -5,7 +5,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from mk_tracking.bigquery_issue_scoring import (
+from mk_tracking.pipeline import EMBEDDING_MODEL
+from mk_tracking.process.issue_scoring.bigquery_issue_scoring import (
     ANCHOR_LANGUAGE_COUNTS,
     ANCHORS_PER_ISSUE,
     EXPECTED_ISSUE_COUNT,
@@ -18,7 +19,6 @@ from mk_tracking.bigquery_issue_scoring import (
     load_anchor_embedding_store,
     sync_missing_tweet_embeddings,
 )
-from mk_tracking.pipeline import EMBEDDING_MODEL
 
 
 class FakeEmbeddingService:
@@ -91,7 +91,7 @@ def _cluster_centroids() -> np.ndarray:
 
 @pytest.mark.xfail(
     reason=(
-        "Known pre-existing failure: db/issue_anchors.json declares 7 issues but "
+        "Known pre-existing failure: data/seed/issue_anchors.json declares 7 issues but "
         "bigquery_issue_scoring.EXPECTED_ISSUE_COUNT is 8. Tracked as the 'issue "
         "taxonomy count' item. Remove this marker once the taxonomy is reconciled."
     ),

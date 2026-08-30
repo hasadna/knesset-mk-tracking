@@ -5,7 +5,7 @@ Snapshot generated on 2026-07-31 from read-only queries against:
 - the authoritative 120 current MKs in BigQuery;
 - Over Knesset's `kns_plenumvoteresult` table.
 
-The machine-readable artifact is `db/vote_mkid_crosswalk.json`. It maps the
+The machine-readable artifact is `data/seed/vote_mkid_crosswalk.json`. It maps the
 vote source's `mkid` to the canonical `mk.knesset_member_id` used by this
 project. It has not been applied to BigQuery.
 
@@ -84,7 +84,7 @@ main ingestion, which resolves every vote through this crosswalk and reconciles
 all 120 reviewed identities on each run:
 
 ```bash
-uv run python -m mk_tracking.download_knesset_data.upload_over_to_postgres
+uv run python -m mk_tracking.collect.knesset.upload_over_to_postgres
 ```
 
 The one-time production merge is captured in
@@ -121,7 +121,7 @@ The generator performs read-only external queries and writes only the local
 JSON file:
 
 ```powershell
-uv run python -m mk_tracking.download_knesset_data.build_vote_mkid_crosswalk
+uv run python -m mk_tracking.collect.knesset.build_vote_mkid_crosswalk
 ```
 
 It deliberately reads the current roster from BigQuery. Regeneration must fail

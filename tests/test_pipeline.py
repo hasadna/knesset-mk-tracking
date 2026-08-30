@@ -207,7 +207,7 @@ def test_subject_table_has_six_knn_anchor_rows(
 def test_builtin_catalog_has_15_subjects_and_75_curated_sentences(
     tmp_path: Path,
 ) -> None:
-    catalog_path = Path(__file__).parents[1] / "data" / "subjects.json"
+    catalog_path = Path(__file__).parents[1] / "data" / "seed" / "subjects.json"
     subjects = json.loads(catalog_path.read_text(encoding="utf-8"))
 
     assert len(subjects) == 15

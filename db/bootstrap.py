@@ -382,7 +382,7 @@ def main() -> int:
     if not args.skip_votes:
         banner("[3/4]", "ingest vote events from over.org.il")
         vote_argv = [
-            sys.executable, "-m", "mk_tracking.download_knesset_data.upload_over_to_postgres",
+            sys.executable, "-m", "mk_tracking.collect.knesset.upload_over_to_postgres",
             "--schema", schema,
         ]
         if args.dry_run_votes:

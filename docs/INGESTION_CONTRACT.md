@@ -1,7 +1,7 @@
 # Ingestion Contract — writing pipeline output into the DB (v4)
 
 **Audience:** the sentiment/analysis pipeline team and any agent implementing ingestion.
-**Deployed target:** BigQuery, dataset `mk_tracking` (see `docs/DATABASE_DESIGN.md` §9–§10; DDL in `db/schema.bq.sql`).
+**Deployed target:** BigQuery, dataset `mk_tracking` (see `docs/DATABASE_DESIGN.md` §9–§10; DDL in `db/schema.sql`).
 **Status:** authoritative definition of the pipeline↔DB contact point. If schema and doc disagree, the repo's `.bq.sql` files win — then fix this doc.
 **v4 change (2026-07-30):** summaries carry evidence quality, limitations, and explicit supporting-post links. The issue taxonomy and matching prompts are aligned with `mk_work`.
 Existing v3 BigQuery datasets must be rebuilt before using this contract.
@@ -57,7 +57,7 @@ Row `id`s are `GENERATE_UUID()` strings; they change on every environment rebuil
 | Entity | Natural key | Where it comes from |
 |---|---|---|
 | `mk` | `knesset_member_id` (or `slug`) | Knesset OData / Open Knesset |
-| `issue` | `slug` (e.g. `'housing'`) | `db/seed.bq.sql` — the closed, curated taxonomy |
+| `issue` | `slug` (e.g. `'housing'`) | `db/seed.sql` — the closed, curated taxonomy |
 | `social_post` | `(platform, platform_post_id)` | the platform's own post id |
 | `tweet_cluster` | `(model_version, cluster_id)` | reviewed K-means artifact |
 | `post_issue` | `(post_id, issue_id)` | resolved via the two above |
@@ -80,7 +80,7 @@ Validate before writing:
   each anchor embedding contains exactly 3,072 floats
 - every reviewed cluster model contains exactly 30 centroids with 3,072
   dimensions and a manually reviewed `is_garbage` flag
-- issue `slug` exists in the taxonomy — **fail loudly on unknown slugs**; the taxonomy changes only via `db/seed.bq.sql` + team agreement
+- issue `slug` exists in the taxonomy — **fail loudly on unknown slugs**; the taxonomy changes only via `db/seed.sql` + team agreement
 - stamp `model_version` on every tag and summary — the only provenance breadcrumb
 - `quality` ∈ `strong|partial|none`
 - `strong` or `partial` requires at least one supporting post; `none` requires none
@@ -126,7 +126,7 @@ The staging schemas (`db/staging/*.schema.json`) are the **machine-readable half
 
 For the X-specific acquisition procedure—per-MK forward/backfill boundaries,
 exact-count pagination, account selection, and post-run verification—see
-[`x_api_collect/README.md`](../x_api_collect/README.md#acquiring-fresh-posts-without-duplicates).
+[`src/mk_tracking/collect/x/README.md`](../src/mk_tracking/collect/x/README.md#acquiring-fresh-posts-without-duplicates).
 
 The MERGE keys, as implemented in `db/merge_ingest.bq.sql`:
 1. `social_post` — `ON (platform, platform_post_id)`, MK resolved by joining `mk.knesset_member_id`.
@@ -139,7 +139,7 @@ A staged row whose `knesset_member_id` or issue `slug` doesn't resolve is **sile
 ## 4. Ordering & prerequisites
 
 1. **`mk` rows must exist first** — everything resolves through `knesset_member_id`. Loading the ~120 current MKs is a DB/infra-side prerequisite (not the sentiment team's job).
-2. `issue` rows come only from `db/seed.bq.sql`. The taxonomy is being curated toward concrete, verifiable areas (economic etc.) — expect edits to the seed, not to the schema.
+2. `issue` rows come only from `db/seed.sql`. The taxonomy is being curated toward concrete, verifiable areas (economic etc.) — expect edits to the seed, not to the schema.
 3. Curated `issue_anchor` rows must exist before similarity scoring. Normal
    pipeline runs validate and read them but do not regenerate them.
 4. Within a batch: posts → post_issue → summaries → supporting posts (already

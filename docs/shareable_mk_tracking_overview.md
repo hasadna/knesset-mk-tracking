@@ -182,7 +182,7 @@ The API endpoint consumes the materialized table and returns structured JSON for
 
 | Identified Pitfall | Root Cause / Vulnerability | Architectural Mitigation |
 | :--- | :--- | :--- |
-| **Missing `bill_issue` rows** | `bill_issues/cli.py` hasn't been run against the full BQ dataset. | Run prioritized backfill for bills with votes since 2015 before deploying API endpoint. |
+| **Missing `bill_issue` rows** | `src/mk_tracking/process/bill_issues/cli.py` hasn't been run against the full BQ dataset. | Run prioritized backfill for bills with votes since 2015 before deploying API endpoint. |
 | **Dropping Committee Motions** | `INNER JOIN bill` on `vote_event` excludes non-bill votes. | Use `LEFT JOIN bill` in `v_mk_issue_bill_votes` and fall back to `ve.title_he`. |
 | **BigQuery UI Latency & Cost** | Executing complex JOINs and `ARRAY_AGG` dynamically on page loads. | Materialize `v_mk_issue_bill_votes` into clustered table `tbl_mk_issue_bill_votes`. |
 | **Unresolvable `gs://` URIs** | Browsers cannot directly render Google Cloud Storage paths. | FastAPI document proxy route `/api/documents/bills/{id}` generating signed download links. |

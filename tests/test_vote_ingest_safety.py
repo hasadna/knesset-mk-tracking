@@ -13,7 +13,7 @@ import urllib.error
 
 import pytest
 
-from mk_tracking.download_knesset_data import over_api, upload_over_to_postgres
+from mk_tracking.collect.knesset import over_api, upload_over_to_postgres
 
 
 def _explode(*args, **kwargs):
