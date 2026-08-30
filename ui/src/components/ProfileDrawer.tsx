@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MKMember, Topic, TopicDetail, TweetPost } from '../types';
-import { initials, STATUS_LABELS, formatIsraeliDate, parseTweetText } from '../utils/formatters';
+import { initials, STATUS_LABELS, formatIsraeliDate, parseTweetText, DISCOURSE_TOPIC_ID } from '../utils/formatters';
 import { OpinionCarousel } from './OpinionCarousel';
 import { XIcon, ArrowRightIcon, RepeatIcon } from './icons';
 import { RatingScale } from './RatingScale';
@@ -137,11 +137,11 @@ export const ProfileDrawer: React.FC<ProfileDrawerProps> = ({
   }, [isOpen, member?.key, member?.wikiTitle, imageFor, resolveHighResImage]);
 
   const discourseTopic = useMemo(
-    () => topics.find((topic) => topic.id === 'discourse-quality') || null,
+    () => topics.find((topic) => topic.id === DISCOURSE_TOPIC_ID) || null,
     [topics]
   );
   const policyTopics = useMemo(() => {
-    const filtered = topics.filter((topic) => topic.id !== 'discourse-quality');
+    const filtered = topics.filter((topic) => topic.id !== DISCOURSE_TOPIC_ID);
     if (!member) return filtered;
 
     return [...filtered].sort((a, b) => {

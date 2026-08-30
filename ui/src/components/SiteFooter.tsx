@@ -32,7 +32,7 @@ export const SiteFooter: React.FC = () => {
           <LandmarkIcon />
           <span>Over - גרסאות לעם</span>
         </a>
-        <a href="https://github.com/hasadna/mk-tracking" target="_blank" rel="noopener noreferrer" className="footer-link">
+        <a href="https://github.com/hasadna/knesset-mk-tracking" target="_blank" rel="noopener noreferrer" className="footer-link">
           <GithubIcon />
           <span>קוד פתוח ב-GitHub</span>
         </a>

@@ -64,6 +64,10 @@ export const STATUS_EXPLANATIONS: Record<TopicStatus, string> = {
   none: 'לא מספיק מידע - הנושא אינו מכוסה בציוצים שבמאגר',
 };
 
+// Rated per MK rather than positioned on a policy axis, so it is presented on its
+// own throughout the UI instead of alongside the policy topics.
+export const DISCOURSE_TOPIC_ID = 'discourse-quality';
+
 export const PARTY_PALETTE = [
   '#2c5f8a', '#9a5d31', '#2f776d', '#7f5298', '#a14e64',
   '#547a2d', '#14779a', '#b36b20', '#5d6898', '#8d4141',

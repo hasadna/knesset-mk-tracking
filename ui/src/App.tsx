@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Routes, Route, useNavigate, useMatch } from 'react-router-dom';
 import { SortMode, PartyGroup, TweetPost } from './types';
+import { DISCOURSE_TOPIC_ID } from './utils/formatters';
 import { useMKData } from './hooks/useMKData';
 import { useWikipediaImages } from './hooks/useWikipediaImages';
 import { useTheme } from './hooks/useTheme';
@@ -117,7 +118,14 @@ export const App: React.FC = () => {
   const selectedTopicTitle =
     selectedTopic === 'all' ? 'כל הנושאים' : topicMap.get(selectedTopic)?.title || '';
 
-  const selectedTopicDetails = selectedTopic === 'all' ? null : topicMap.get(selectedTopic);
+  // The axis places a party at the mean of its members' ratings. That reads as a
+  // party position on a policy topic, but on discourse-quality the same mean is a
+  // civility grade for a whole faction — an aggregate the rating was never built to
+  // support — so the topic gets no party view.
+  const selectedTopicDetails =
+    selectedTopic === 'all' || selectedTopic === DISCOURSE_TOPIC_ID
+      ? null
+      : topicMap.get(selectedTopic);
 
   const activeMember = useMemo(() => {
     if (!selectedMemberKey) return null;
