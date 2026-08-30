@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import urllib.parse
@@ -6,11 +7,11 @@ import uuid
 
 from .bq_export import get_active_mk_twitter_accounts, get_bigquery_client
 
-PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
-if not PROJECT_ID:
-    raise ValueError("GOOGLE_CLOUD_PROJECT environment variable must be set")
 
 def populate():
+    PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    if not PROJECT_ID:
+        raise ValueError("GOOGLE_CLOUD_PROJECT environment variable must be set")
     client = get_bigquery_client(PROJECT_ID)
 
     # Step 1: Clean up mock entries for Amit Segal from mk and mk_social_account tables
@@ -124,5 +125,18 @@ def populate():
     print(f"Verification: get_active_mk_twitter_accounts() returned {len(active_accounts)} active MK handles.")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="collect-x-accounts",
+        description=(
+            "Discover current MKs' X (Twitter) handles from Wikidata, match them "
+            "against the BigQuery `mk` roster, and populate `mk_social_account`. "
+            "Requires GOOGLE_CLOUD_PROJECT and BigQuery credentials."
+        ),
+    )
+    parser.parse_args()
     populate()
+
+
+if __name__ == "__main__":
+    main()

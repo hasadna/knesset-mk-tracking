@@ -40,7 +40,7 @@ dev = [
 [project.scripts]
 collect-knesset = "mk_tracking.collect.knesset.upload_over_to_postgres:main"
 collect-x = "mk_tracking.collect.x.cli:run_cli"
-collect-x-accounts = "mk_tracking.collect.x.accounts:populate"
+collect-x-accounts = "mk_tracking.collect.x.accounts:main"
 process-embeddings = "mk_tracking.process.embeddings.big_query_to_data:main"
 process-bill-issues = "mk_tracking.process.bill_issues.cli:main"
 process-summaries = "mk_tracking.process.summaries.cli:main"
